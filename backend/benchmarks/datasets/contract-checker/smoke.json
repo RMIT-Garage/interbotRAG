@@ -1,0 +1,48 @@
+{
+  "datasetVersion": "v1.0.0",
+  "feature": "contract-checker",
+  "promptVersion": "v1.0.0",
+  "model": "gemini-2.0-flash-lite",
+  "cases": [
+    {
+      "id": "CC-SMOKE-001",
+      "feature": "contract-checker",
+      "name": "Clearly compliant contract",
+      "input": {
+        "text": "Contract between Example Pty Ltd and Alex Smith for Junior Software Developer under IT Award 2020. Placement is 240 hours over 6 weeks. Supervisor: Jane Doe jane.doe@example.com. Contract is signed by employer and student."
+      },
+      "expected": {
+        "decision": "Yes",
+        "failingRules": [],
+        "concerns": []
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule1 pass. Rule2 pass. Rule3 pass. Rule4 pass. Rule5 pass. Rule6 pass.",
+        "decision": "Yes",
+        "confidence": 0.97,
+        "concerns": [],
+        "summary": "Contract is compliant across all rules."
+      }
+    },
+    {
+      "id": "CC-SMOKE-002",
+      "feature": "contract-checker",
+      "name": "Healthcare award should fail",
+      "input": {
+        "text": "Agreement for Health Information Assistant under Health Professionals Award 2010. Placement is 260 hours. Supervisor with contact is provided."
+      },
+      "expected": {
+        "decision": "No",
+        "failingRules": ["RULE_1_AWARD_CLASSIFICATION"],
+        "concerns": ["Award classification is healthcare, not IT or engineering."]
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule1 fails because Health Professionals Award is not IT/engineering.",
+        "decision": "No",
+        "confidence": 0.99,
+        "concerns": ["Award classification is healthcare, not IT or engineering."],
+        "summary": "Contract fails award classification rule."
+      }
+    }
+  ]
+}

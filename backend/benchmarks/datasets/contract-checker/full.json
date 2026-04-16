@@ -1,0 +1,68 @@
+{
+  "datasetVersion": "v1.0.0",
+  "feature": "contract-checker",
+  "promptVersion": "v1.0.0",
+  "model": "gemini-2.0-flash-lite",
+  "cases": [
+    {
+      "id": "CC-FULL-001",
+      "feature": "contract-checker",
+      "name": "Compliant contract",
+      "input": {
+        "text": "IT Award role as Junior Developer, 240+ hours, named supervisor with email, signed by both parties, future start date."
+      },
+      "expected": {
+        "decision": "Yes",
+        "failingRules": [],
+        "concerns": []
+      },
+      "fixtureResponse": {
+        "scratchpad": "All rules pass.",
+        "decision": "Yes",
+        "confidence": 0.95,
+        "concerns": [],
+        "summary": "Compliant contract."
+      }
+    },
+    {
+      "id": "CC-FULL-002",
+      "feature": "contract-checker",
+      "name": "Missing minimum hours",
+      "input": {
+        "text": "IT support role, part-time as needed, no explicit hours."
+      },
+      "expected": {
+        "decision": "No",
+        "failingRules": ["RULE_2_MINIMUM_HOURS"],
+        "concerns": ["Minimum 240 hours is not established."]
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule2 fails due to vague hours.",
+        "decision": "No",
+        "confidence": 0.92,
+        "concerns": ["Minimum 240 hours is not established."],
+        "summary": "Fails minimum hours requirement."
+      }
+    },
+    {
+      "id": "CC-FULL-003",
+      "feature": "contract-checker",
+      "name": "Past start date",
+      "input": {
+        "text": "Software role with 300 hours and proper supervisor contact, but start date is three months ago."
+      },
+      "expected": {
+        "decision": "No",
+        "failingRules": ["RULE_6_CONTRACT_VALIDITY"],
+        "concerns": ["Start date is in the past."]
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule6 fails because start date is in the past.",
+        "decision": "No",
+        "confidence": 0.94,
+        "concerns": ["Start date is in the past."],
+        "summary": "Fails contract validity date requirement."
+      }
+    }
+  ]
+}

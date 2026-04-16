@@ -1,0 +1,68 @@
+{
+  "datasetVersion": "v1.0.0",
+  "feature": "job-checker",
+  "promptVersion": "v1.0.0",
+  "model": "gemini-2.0-flash-lite",
+  "cases": [
+    {
+      "id": "JC-FULL-001",
+      "feature": "job-checker",
+      "name": "Eligible paid software internship",
+      "input": {
+        "text": "Paid software engineering internship, 6 months full-time, supervised by senior engineer, with established company."
+      },
+      "expected": {
+        "decision": "Yes",
+        "failingRules": [],
+        "concerns": []
+      },
+      "fixtureResponse": {
+        "scratchpad": "All rules pass.",
+        "decision": "Yes",
+        "confidence": 0.94,
+        "concerns": [],
+        "summary": "Eligible role."
+      }
+    },
+    {
+      "id": "JC-FULL-002",
+      "feature": "job-checker",
+      "name": "Too short and unpaid without agreement",
+      "input": {
+        "text": "Two-week unpaid startup project with no formal WIL agreement."
+      },
+      "expected": {
+        "decision": "No",
+        "failingRules": ["RULE_2_MINIMUM_DURATION", "RULE_4_PAID_OR_FORMAL"],
+        "concerns": ["Duration below 240 hours.", "Unpaid role has no formal placement agreement."]
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule2 and Rule4 fail.",
+        "decision": "No",
+        "confidence": 0.98,
+        "concerns": ["Duration below 240 hours.", "Unpaid role has no formal placement agreement."],
+        "summary": "Ineligible due to duration and structure failures."
+      }
+    },
+    {
+      "id": "JC-FULL-003",
+      "feature": "job-checker",
+      "name": "Missing employer legitimacy info",
+      "input": {
+        "text": "Freelance contractor role, technical tasks mentioned but no employer details provided."
+      },
+      "expected": {
+        "decision": "No",
+        "failingRules": ["RULE_5_LEGITIMATE_EMPLOYER"],
+        "concerns": ["Employer legitimacy information is missing."]
+      },
+      "fixtureResponse": {
+        "scratchpad": "Rule5 fails due to missing employer information.",
+        "decision": "No",
+        "confidence": 0.9,
+        "concerns": ["Employer legitimacy information is missing."],
+        "summary": "Ineligible because employer legitimacy cannot be verified."
+      }
+    }
+  ]
+}
