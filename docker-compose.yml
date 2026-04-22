@@ -15,8 +15,10 @@ services:
       - ./firebase.json:/workspace/firebase.json:ro
       - ./.firebaserc:/workspace/.firebaserc:ro
       - ./firebase:/workspace/firebase:ro
+    env_file:
+      - backend/.env
     environment:
-      - GCLOUD_PROJECT=${NEXT_PUBLIC_FIREBASE_PROJECT_ID:-garage-boilerplate-dev}
+      - GCLOUD_PROJECT=internbotrag
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:4000"]
       interval: 10s

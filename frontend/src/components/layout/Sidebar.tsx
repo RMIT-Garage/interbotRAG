@@ -1,15 +1,16 @@
 import Link from 'next/link'
-import { Bot, BriefcaseBusiness, FileCheck } from 'lucide-react'
+import { Bot, BriefcaseBusiness, Database, FileCheck } from 'lucide-react'
 
 const navItems = [
-  { href: '/benchmarks?feature=faq-rag', label: 'Chatbot Demo', icon: Bot },
+  { href: '/demo?feature=faq-rag', label: 'Chatbot Demo', icon: Bot },
+  { href: '/knowledge', label: 'Knowledge Base', icon: Database },
   {
-    href: '/benchmarks?feature=contract-checker',
+    href: '/demo?feature=contract-checker',
     label: 'Contract Checker Demo',
     icon: FileCheck,
   },
   {
-    href: '/benchmarks?feature=job-checker',
+    href: '/demo?feature=job-checker',
     label: 'Job Checker Demo',
     icon: BriefcaseBusiness,
   },

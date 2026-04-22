@@ -23,7 +23,7 @@ export default function RegisterPage() {
   const onSubmit = async (data: RegisterInput) => {
     try {
       await signUpWithEmail(data.email, data.password, data.displayName)
-      router.push('/benchmarks')
+      router.push('/demo')
     } catch (error: unknown) {
       if (error instanceof Error && error.message.includes('email-already-in-use')) {
         toast.error('An account with this email already exists')
@@ -36,23 +36,23 @@ export default function RegisterPage() {
   const handleGoogleSignIn = async () => {
     try {
       await signInWithGoogle()
-      router.push('/benchmarks')
+      router.push('/demo')
     } catch {
       toast.error('Google sign-in failed. Please try again.')
     }
   }
 
   return (
-    <div className="space-y-6">
-      <div className="text-center space-y-1">
-        <h1 className="text-2xl font-bold tracking-tight">Create account</h1>
-        <p className="text-sm text-zinc-500">Get started for free</p>
+    <div className="space-y-6 bg-white/60 dark:bg-zinc-900/60 backdrop-blur-xl p-8 rounded-3xl border border-white/20 shadow-[0_8px_32px_rgba(0,0,0,0.1)] my-8">
+      <div className="text-center space-y-2">
+        <h1 className="text-3xl font-bold tracking-tight bg-gradient-to-br from-zinc-900 to-zinc-600 dark:from-white dark:to-zinc-400 bg-clip-text text-transparent">Create Account</h1>
+        <p className="text-sm text-zinc-500">Begin your journey with interbot</p>
       </div>
 
       <button
         type="button"
         onClick={handleGoogleSignIn}
-        className="w-full flex items-center justify-center gap-3 rounded-md border border-zinc-300 bg-white px-4 py-2.5 text-sm font-medium shadow-sm hover:bg-zinc-50 transition-colors dark:border-zinc-700 dark:bg-zinc-900 dark:hover:bg-zinc-800"
+        className="w-full flex items-center justify-center gap-3 rounded-xl border border-zinc-200/50 bg-white/80 px-4 py-3 text-sm font-medium shadow-sm hover:bg-white hover:scale-[1.02] active:scale-[0.98] transition-all dark:border-zinc-700/50 dark:bg-zinc-800/80 dark:hover:bg-zinc-800 backdrop-blur-sm"
       >
         <svg className="h-4 w-4" viewBox="0 0 24 24" aria-hidden="true">
           <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4" />
@@ -65,78 +65,78 @@ export default function RegisterPage() {
 
       <div className="relative">
         <div className="absolute inset-0 flex items-center">
-          <span className="w-full border-t border-zinc-200 dark:border-zinc-700" />
+          <span className="w-full border-t border-zinc-200/50 dark:border-zinc-700/50" />
         </div>
-        <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-zinc-50 px-2 text-zinc-400 dark:bg-zinc-950">or</span>
+        <div className="relative flex justify-center text-xs uppercase font-medium">
+          <span className="bg-transparent px-2 text-zinc-400">or</span>
         </div>
       </div>
 
       <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
         <div className="space-y-1.5">
-          <label htmlFor="displayName" className="text-sm font-medium">Full name</label>
+          <label htmlFor="displayName" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Full name</label>
           <input
             id="displayName"
             type="text"
             autoComplete="name"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-xl border border-zinc-200/60 bg-white/50 px-4 py-3 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 dark:border-zinc-700/50 dark:bg-zinc-900/50 backdrop-blur-md transition-all"
             placeholder="Jane Smith"
             {...register('displayName')}
           />
-          {errors.displayName && <p className="text-xs text-red-500">{errors.displayName.message}</p>}
+          {errors.displayName && <p className="text-xs text-red-500 font-medium">{errors.displayName.message}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="email" className="text-sm font-medium">Email</label>
+          <label htmlFor="email" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Email</label>
           <input
             id="email"
             type="email"
             autoComplete="email"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-xl border border-zinc-200/60 bg-white/50 px-4 py-3 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 dark:border-zinc-700/50 dark:bg-zinc-900/50 backdrop-blur-md transition-all"
             placeholder="you@example.com"
             {...register('email')}
           />
-          {errors.email && <p className="text-xs text-red-500">{errors.email.message}</p>}
+          {errors.email && <p className="text-xs text-red-500 font-medium">{errors.email.message}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="password" className="text-sm font-medium">Password</label>
+          <label htmlFor="password" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Password</label>
           <input
             id="password"
             type="password"
             autoComplete="new-password"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-xl border border-zinc-200/60 bg-white/50 px-4 py-3 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 dark:border-zinc-700/50 dark:bg-zinc-900/50 backdrop-blur-md transition-all"
             placeholder="Min. 8 characters"
             {...register('password')}
           />
-          {errors.password && <p className="text-xs text-red-500">{errors.password.message}</p>}
+          {errors.password && <p className="text-xs text-red-500 font-medium">{errors.password.message}</p>}
         </div>
 
         <div className="space-y-1.5">
-          <label htmlFor="confirmPassword" className="text-sm font-medium">Confirm password</label>
+          <label htmlFor="confirmPassword" className="text-sm font-medium text-zinc-700 dark:text-zinc-300">Confirm password</label>
           <input
             id="confirmPassword"
             type="password"
             autoComplete="new-password"
-            className="w-full rounded-md border border-zinc-300 bg-white px-3 py-2 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-500 dark:border-zinc-700 dark:bg-zinc-900"
+            className="w-full rounded-xl border border-zinc-200/60 bg-white/50 px-4 py-3 text-sm shadow-sm placeholder:text-zinc-400 focus:outline-none focus:ring-2 focus:ring-blue-400/50 dark:border-zinc-700/50 dark:bg-zinc-900/50 backdrop-blur-md transition-all"
             placeholder="••••••••"
             {...register('confirmPassword')}
           />
-          {errors.confirmPassword && <p className="text-xs text-red-500">{errors.confirmPassword.message}</p>}
+          {errors.confirmPassword && <p className="text-xs text-red-500 font-medium">{errors.confirmPassword.message}</p>}
         </div>
 
         <button
           type="submit"
           disabled={isSubmitting}
-          className="w-full rounded-md bg-black text-white px-4 py-2.5 text-sm font-medium hover:bg-zinc-800 disabled:opacity-50 disabled:cursor-not-allowed transition-colors dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          className="w-full rounded-xl bg-gradient-to-r from-blue-500 to-indigo-500 text-white px-4 py-3 text-sm font-semibold hover:opacity-90 disabled:opacity-50 disabled:cursor-not-allowed hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg hover:shadow-blue-500/25 mt-2"
         >
           {isSubmitting ? 'Creating account…' : 'Create account'}
         </button>
       </form>
 
-      <p className="text-center text-sm text-zinc-500">
+      <p className="text-center text-sm font-medium text-zinc-500">
         Already have an account?{' '}
-        <Link href="/login" className="font-medium text-zinc-900 hover:underline dark:text-white">
+        <Link href="/login" className="text-blue-500 hover:text-blue-600 hover:underline transition-colors">
           Sign in
         </Link>
       </p>

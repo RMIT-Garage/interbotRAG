@@ -13,12 +13,60 @@
 |-|-|
 | **Frontend** | Next.js 16 (App Router) · React 19 · TypeScript 5 · Tailwind v4 |
 | **Backend** | Firebase Cloud Functions v2 · Express · Clean Architecture · TypeScript |
-| **Database** | Firestore |
+| **Database** | Firestore (app data) + Supabase Postgres/pgvector (RAG knowledge layer) |
 | **Auth** | Firebase Authentication (Email/Password + Google OAuth) |
 | **Storage** | Firebase Cloud Storage |
+| **AI** | Gemini for generation + embeddings |
 | **Infrastructure** | Terraform (Firebase + GCP) |
 | **Package manager** | pnpm workspaces |
 | **Testing** | Vitest · Testing Library · supertest |
+
+## Current RAG MVP
+
+This repo now includes a working Firebase + Supabase hybrid RAG MVP for the `faq-rag` demo flow.
+
+### What is implemented now
+
+- **Protected knowledge management page** at `frontend/src/app/(dashboard)/knowledge/page.tsx`
+  - Admin users can paste knowledge content manually
+  - The page lists already-ingested documents
+- **Protected backend knowledge routes** in `backend/src/api/routes/knowledge.ts`
+  - `GET /api/knowledge/documents`
+  - `POST /api/knowledge/documents`
+  - Access requires a valid Firebase ID token and `actor.claims.admin === true`
+- **Knowledge ingestion pipeline**
+  - `backend/src/application/knowledge/chunkText.ts` splits content into overlapping chunks
+  - `backend/src/application/knowledge/ingestKnowledgeDocument.ts` creates a document, embeds chunks, and stores them in Supabase
+- **Supabase-backed retrieval**
+  - `backend/src/infrastructure/retrieval/supabaseKnowledgeRetriever.ts` embeds the query and calls the `match_knowledge_chunks` RPC in Supabase
+  - `backend/supabase/schema.sql` defines the `knowledge_documents` and `knowledge_chunks` tables and the vector-search function
+- **Grounded chat responses with sources**
+  - `backend/src/api/routes/chat.ts` returns `{ reply, sources }`
+  - `frontend/src/components/demo/ChatInterface.tsx` renders the source list under assistant replies
+
+### End-to-end runtime flow
+
+1. An admin signs in with Firebase Auth and opens `/knowledge`.
+2. The frontend sends a bearer token through the Next.js proxy route at `frontend/src/app/api/backend/[...path]/route.ts`.
+3. `POST /api/knowledge/documents` validates the payload, checks `actor.claims.admin`, chunks the content, generates embeddings with Gemini, and writes documents/chunks into Supabase.
+4. A signed-in user opens `/demo?feature=faq-rag` and sends a question.
+5. `POST /api/chat/message` embeds the query, retrieves the top matching chunks from Supabase, appends them to the model input, and generates a reply.
+6. The backend returns the answer together with source metadata, and the frontend renders both.
+
+For a feature-level snapshot, see [docs/RAG-MVP.md](docs/RAG-MVP.md). For the operational setup sequence, see [docs/RAG-SETUP-PLAYBOOK.md](docs/RAG-SETUP-PLAYBOOK.md).
+
+### Required setup for the live RAG MVP
+
+The app can still boot without retrieval, but the **full RAG MVP requires all of the following**:
+
+- Firebase Auth configured for login and protected API access
+- `SUPABASE_URL`
+- `SUPABASE_SERVICE_ROLE_KEY`
+- `GEMINI_API_KEY`
+- optional `GEMINI_EMBEDDING_MODEL`
+- the SQL in `backend/supabase/schema.sql` applied to your Supabase project
+
+If `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, or `GEMINI_API_KEY` are missing, the retriever returns no chunks and chat falls back to prompt-only behavior.
 
 ## Quick Start
 
@@ -136,6 +184,10 @@ Use the same **project id** everywhere: `.firebaserc` → `projects.default`, `F
 | `USE_EMULATOR` | Toggle | **`true`** = Admin SDK uses **Firestore + Auth emulators** (`FIRESTORE_EMULATOR_HOST` / `FIREBASE_AUTH_EMULATOR_HOST`). **`false`** = **production** Firebase. |
 | `FIRESTORE_EMULATOR_HOST` | When emulators | Default in example: `localhost:8080` (Docker publishes Firestore emulator here) |
 | `FIREBASE_AUTH_EMULATOR_HOST` | When emulators | Default in example: `localhost:9099` |
+| `SUPABASE_URL` | For live RAG | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | For live RAG | Service-role key used by the backend knowledge repository/retriever |
+| `GEMINI_API_KEY` | For live RAG | Gemini API key used for chat generation and embeddings |
+| `GEMINI_EMBEDDING_MODEL` | No | Embedding model override (default `text-embedding-004`) |
 | `NODE_ENV` | No | Usually `development` locally |
 | `PORT` | No | Default `5001` for local API |
 
@@ -433,6 +485,8 @@ Use a whitelist approach: import only skills you actively use and review them be
 | Topic | Link |
 |-------|------|
 | Architecture | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) |
+| RAG MVP | [docs/RAG-MVP.md](docs/RAG-MVP.md) |
+| RAG setup playbook | [docs/RAG-SETUP-PLAYBOOK.md](docs/RAG-SETUP-PLAYBOOK.md) |
 | Backend | [docs/BACKEND.md](docs/BACKEND.md) |
 | Frontend | [docs/FRONTEND.md](docs/FRONTEND.md) |
 | Infrastructure | [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) |

@@ -42,8 +42,9 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier }: AppOptions 
   // Security headers (must be first)
   app.use(helmet())
 
-  // CORS — defaults to deny-all if CORS_ORIGIN is not set
-  app.use(cors({ origin: process.env.CORS_ORIGIN ?? false }))
+  // CORS - Reflect the request origin, allowing all clients. 
+  // Security is enforced via the Authorization bearer token middleware instead.
+  app.use(cors({ origin: true }))
 
   // Rate limiting — applied before any route logic
   app.use(globalLimiter)

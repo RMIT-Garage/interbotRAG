@@ -23,10 +23,16 @@ WORKDIR /workspace
 COPY firebase.json .firebaserc ./
 COPY firebase ./firebase
 
+# Build the backend functions
+COPY backend/package.json backend/package*.json ./backend/
+RUN cd backend && npm install
+COPY backend ./backend
+RUN cd backend && npm run build
+
 # Create the emulator data directory
 RUN mkdir -p .emulator-data
 
 EXPOSE 4000 5001 8080 9099 9199
 
 # Emulator bind addresses: set in firebase.json (emulators.*.host). Newer firebase-tools rejects --host here.
-ENTRYPOINT ["sh", "-c", "firebase experiments:enable webframeworks && exec firebase emulators:start --only=auth,firestore,storage --import=.emulator-data --export-on-exit=.emulator-data"]
+ENTRYPOINT ["sh", "-c", "firebase experiments:enable webframeworks && exec firebase emulators:start --only=auth,firestore,storage,functions --import=.emulator-data --export-on-exit=.emulator-data"]

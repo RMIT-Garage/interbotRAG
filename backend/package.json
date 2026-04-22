@@ -21,9 +21,10 @@
     "benchmark:ci": "tsx src/benchmarkRunner.ts --mode=smoke --fixtures=true"
   },
   "engines": {
-    "node": ">=22"
+    "node": "22"
   },
   "dependencies": {
+    "@supabase/supabase-js": "^2.49.8",
     "cors": "^2.8.5",
     "express": "^5.1.0",
     "express-rate-limit": "^8.3.1",
