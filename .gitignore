@@ -16,3 +16,7 @@ node_modules
 supabase/.temp
 
 .firebase
+
+# Backend build outputs
+backend/lib/
+backend/*.tsbuildinfo

@@ -20,13 +20,19 @@ function getAdminApp(): App {
   const encodedKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64
   const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
 
-  let serviceAccountJson: string
+  let serviceAccountJson: string | null = null
   if (encodedKey) {
     serviceAccountJson = Buffer.from(encodedKey, 'base64').toString('utf8')
   } else if (credentialsPath) {
     serviceAccountJson = readFileSync(credentialsPath, 'utf8')
-  } else {
-    throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 is not set')
+  }
+
+  if (!serviceAccountJson) {
+    // Fall back to application default credentials so Firebase Functions source analysis
+    // and runtime environments can initialize Admin SDK without requiring custom env vars.
+    return initializeApp({
+      projectId: process.env.FIREBASE_PROJECT_ID ?? process.env.GCLOUD_PROJECT,
+    })
   }
 
   return initializeApp({
