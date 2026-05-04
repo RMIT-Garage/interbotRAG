@@ -40,6 +40,9 @@ jobs:
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
 
+      - name: Build backend functions
+        run: pnpm --filter backend build
+
       - name: Prepare Firebase credentials
         shell: bash
         env:
