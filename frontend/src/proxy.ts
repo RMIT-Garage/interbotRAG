@@ -1,32 +1,15 @@
 import { type NextRequest, NextResponse } from 'next/server'
 
-const PROTECTED_ROUTES = ['/dashboard', '/benchmarks', '/profile', '/settings']
-const AUTH_ROUTES = ['/login', '/register']
-
-/**
- * Optimistic proxy — checks for the presence of the session cookie only.
- * Cryptographic token verification happens in Server Actions and Route Handlers
- * using the Firebase Admin SDK (near the data, not at the edge).
- */
 export function proxy(req: NextRequest) {
-  const sessionCookie = req.cookies.get('__session')?.value
-  const isAuthenticated = Boolean(sessionCookie)
   const { pathname } = req.nextUrl
-
-  const isProtected = PROTECTED_ROUTES.some((route) => pathname.startsWith(route))
-  const isAuthRoute = AUTH_ROUTES.some((route) => pathname.startsWith(route))
-
-  if (isProtected && !isAuthenticated) {
-    const loginUrl = new URL('/login', req.url)
-    loginUrl.searchParams.set('redirect', pathname)
-    return NextResponse.redirect(loginUrl)
+  if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+    return NextResponse.next()
   }
 
-  if (isAuthRoute && isAuthenticated) {
-    return NextResponse.redirect(new URL('/benchmarks', req.url))
-  }
-
-  return NextResponse.next()
+  const url = req.nextUrl.clone()
+  url.pathname = '/demo'
+  url.search = ''
+  return NextResponse.redirect(url)
 }
 
 export const config = {

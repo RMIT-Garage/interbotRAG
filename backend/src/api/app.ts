@@ -36,6 +36,9 @@ const globalLimiter = rateLimit({
  */
 export function createApp({ tokenVerifier = firebaseTokenVerifier }: AppOptions = {}): Express {
   const app = express()
+  // Requests come through Firebase/Next proxies in local+cloud environments.
+  // Trust first proxy so middleware (e.g. rate limiter) reads client IP reliably.
+  app.set('trust proxy', 1)
 
   const authMiddleware = createAuthMiddleware(tokenVerifier)
 

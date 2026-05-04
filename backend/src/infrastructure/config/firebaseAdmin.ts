@@ -3,10 +3,16 @@ import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
 
+function useEmulatorAdmin(): boolean {
+  // USE_EMULATOR: local Express / scripts. FUNCTIONS_EMULATOR: Firebase Functions emulator worker
+  // (Docker Compose env_file is not always visible to the Functions analyzer subprocess.)
+  return process.env.USE_EMULATOR === 'true' || process.env.FUNCTIONS_EMULATOR === 'true'
+}
+
 function getAdminApp(): App {
   if (getApps().length > 0) return getApps()[0]!
 
-  if (process.env.USE_EMULATOR === 'true') {
+  if (useEmulatorAdmin()) {
     return initializeApp({ projectId: process.env.FIREBASE_PROJECT_ID ?? 'demo-project' })
   }
 

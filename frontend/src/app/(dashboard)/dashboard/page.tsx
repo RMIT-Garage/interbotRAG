@@ -1,33 +1,29 @@
 import type { Metadata } from 'next'
-import { getServerSession } from '@/actions/auth.actions'
+import { redirect } from 'next/navigation'
 
 export const metadata: Metadata = {
   title: 'Dashboard',
 }
 
 export default async function DashboardPage() {
-  const session = await getServerSession()
-
-  return (
-    <div className="space-y-6">
-      <div>
-        <h1 className="text-2xl font-bold tracking-tight">Dashboard</h1>
-        <p className="text-zinc-500 text-sm mt-1">
-          Welcome back{session?.email ? `, ${session.email}` : ''}.
-        </p>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {(['Metric One', 'Metric Two', 'Metric Three'] as const).map((title) => (
-          <div
-            key={title}
-            className="rounded-lg border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
-          >
-            <p className="text-sm font-medium text-zinc-500">{title}</p>
-            <p className="mt-2 text-3xl font-bold">—</p>
-          </div>
-        ))}
-      </div>
-    </div>
-  )
+  // Dashboard page is intentionally disabled for now.
+  // return (
+  //   <div className="space-y-6">
+  //     <PageHeader
+  //       title="Dashboard"
+  //       description={`Welcome back${session?.email ? `, ${session.email}` : ''}.`}
+  //     />
+  //
+  //     <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+  //       {(['Usage coverage', 'Knowledge quality', 'Response confidence'] as const).map((title) => (
+  //         <div key={title} className="rounded-2xl border bg-surface p-6 shadow-sm">
+  //           <p className="text-sm font-medium text-zinc-500">{title}</p>
+  //           <p className="mt-2 text-3xl font-semibold text-zinc-900 dark:text-zinc-100">--</p>
+  //           <p className="mt-2 text-xs text-zinc-500">Metric connection in progress for this environment.</p>
+  //         </div>
+  //       ))}
+  //     </div>
+  //   </div>
+  // )
+  redirect('/demo')
 }

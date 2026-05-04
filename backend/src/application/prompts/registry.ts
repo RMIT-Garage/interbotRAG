@@ -12,12 +12,12 @@ const benchmarkRoot = path.resolve(process.cwd(), 'benchmarks/prompts')
 
 const promptRegistry: Record<BenchmarkFeature, PromptConfig> = {
   'contract-checker': {
-    version: 'v1.0.0',
-    path: path.join(benchmarkRoot, 'contract-checker', 'v1.0.0.txt'),
+    version: 'v1.1.0',
+    path: path.join(benchmarkRoot, 'contract-checker', 'v1.1.0.txt'),
   },
   'job-checker': {
-    version: 'v1.0.0',
-    path: path.join(benchmarkRoot, 'job-checker', 'v1.0.0.txt'),
+    version: 'v1.1.0',
+    path: path.join(benchmarkRoot, 'job-checker', 'v1.1.0.txt'),
   },
   'faq-rag': {
     version: 'v1.0.0',

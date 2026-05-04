@@ -69,10 +69,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     const unsubscribe = onAuthStateChanged(auth, async (firebaseUser) => {
       try {
         if (firebaseUser) {
-          setUser(firebaseUser)
-          const userProfile = await syncUserProfile(firebaseUser)
-          setProfile(userProfile)
-          await setSessionCookie()
+          await syncAuthenticatedState(firebaseUser)
         } else {
           setUser(null)
           setProfile(null)
@@ -89,17 +86,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return () => unsubscribe()
   }, [])
 
+  async function syncAuthenticatedState(firebaseUser: User): Promise<void> {
+    setUser(firebaseUser)
+    const userProfile = await syncUserProfile(firebaseUser)
+    setProfile(userProfile)
+    await setSessionCookie()
+  }
+
   const signInWithEmail = async (email: string, password: string) => {
-    await fbSignInWithEmail(email, password)
-    // State updated via onAuthStateChanged
+    const firebaseUser = await fbSignInWithEmail(email, password)
+    await syncAuthenticatedState(firebaseUser)
   }
 
   const signUpWithEmail = async (email: string, password: string, displayName: string) => {
-    await fbSignUpWithEmail(email, password, displayName)
+    const firebaseUser = await fbSignUpWithEmail(email, password, displayName)
+    await syncAuthenticatedState(firebaseUser)
   }
 
   const signInWithGoogle = async () => {
-    await fbSignInWithGoogle()
+    const firebaseUser = await fbSignInWithGoogle()
+    await syncAuthenticatedState(firebaseUser)
   }
 
   const signOut = async () => {

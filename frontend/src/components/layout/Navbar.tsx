@@ -1,37 +1,40 @@
 'use client'
 
-import { useRouter } from 'next/navigation'
-import { LogOut } from 'lucide-react'
-import { useAuth } from '@/hooks/useAuth'
+import Link from 'next/link'
+import { Menu } from 'lucide-react'
+
+const mobileLinks = [
+  { href: '/demo?feature=faq-rag', label: 'FAQ Assistant' },
+  { href: '/demo?feature=contract-checker', label: 'Contract Checker' },
+  { href: '/demo?feature=job-checker', label: 'Job Checker' },
+]
 
 export function Navbar() {
-  const router = useRouter()
-  const { user, signOut } = useAuth()
-
-  const handleSignOut = async () => {
-    await signOut()
-    router.push('/login')
-  }
-
   return (
-    <header className="flex h-14 items-center justify-between border-b border-zinc-200 bg-white px-4 dark:border-zinc-800 dark:bg-zinc-900">
-      <div className="lg:hidden font-semibold text-sm">
-        {process.env.NEXT_PUBLIC_APP_NAME ?? 'App'}
-      </div>
-      <div className="flex-1" />
+    <header className="flex h-14 items-center justify-between border-b bg-surface px-4 sm:px-5">
       <div className="flex items-center gap-3">
-        {user && (
-          <span className="text-sm text-zinc-500 hidden sm:block">{user.email}</span>
-        )}
-        <button
-          type="button"
-          onClick={handleSignOut}
-          className="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors dark:hover:bg-zinc-800 dark:hover:text-zinc-300"
-          aria-label="Sign out"
-        >
-          <LogOut className="h-4 w-4" />
-        </button>
+        <details className="relative lg:hidden">
+          <summary className="flex size-9 cursor-pointer list-none items-center justify-center rounded-lg border bg-white text-zinc-700 hover:bg-zinc-50">
+            <Menu className="size-4" />
+          </summary>
+          <div className="absolute left-0 top-11 z-20 w-56 rounded-xl border bg-surface p-2 shadow-lg">
+            {mobileLinks.map((item) => (
+              <Link
+                key={item.href}
+                href={item.href}
+                className="block rounded-lg px-3 py-2 text-sm text-zinc-600 hover:bg-zinc-100 hover:text-zinc-900"
+              >
+                {item.label}
+              </Link>
+            ))}
+          </div>
+        </details>
+        <div>
+          <p className="text-sm font-semibold text-zinc-900 dark:text-zinc-100">{process.env.NEXT_PUBLIC_APP_NAME ?? 'Internbot'}</p>
+          <p className="hidden text-xs text-zinc-500 sm:block">Student and coordinator console</p>
+        </div>
       </div>
+      <span className="hidden rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 md:block">Demo mode</span>
     </header>
   )
 }

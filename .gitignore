@@ -11,3 +11,6 @@ node_modules
 .env.development.local
 .env.test.local
 .env.production.local
+
+# Supabase CLI (link metadata; may include connection hints)
+supabase/.temp

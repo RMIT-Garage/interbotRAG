@@ -51,10 +51,10 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
   }
 
   return (
-    <div className="relative border-t border-zinc-200 bg-white/70 backdrop-blur-md p-4 dark:border-zinc-800 dark:bg-zinc-950/70">
+    <div className="relative border-t bg-transparent p-3 sm:p-4">
       {fileName && (
-        <div className="mb-2 flex items-center gap-2 rounded-t-md bg-blue-50 px-3 py-1 text-xs text-blue-700 dark:bg-blue-900/30 dark:text-blue-300 w-fit">
-          <Paperclip size={12} />
+        <div className="mb-2 flex w-fit items-center gap-2 rounded-md bg-brand-50 px-3 py-1 text-xs text-brand-900 dark:bg-brand-50/40">
+          <Paperclip className="size-3" />
           <span>Attached: {fileName}</span>
           <button
             onClick={() => {
@@ -67,14 +67,14 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
           </button>
         </div>
       )}
-      <div className="flex items-end gap-3 rounded-2xl border border-zinc-300 bg-white shadow-sm ring-1 ring-transparent focus-within:ring-zinc-400 dark:border-zinc-700 dark:bg-zinc-900 dark:focus-within:ring-zinc-600 transition-shadow">
+      <div className="flex items-center gap-2 rounded-xl border bg-background p-1.5 shadow-sm ring-1 ring-transparent transition-shadow focus-within:ring-brand-500/30">
         <button
           type="button"
           disabled={disabled}
           onClick={() => fileInputRef.current?.click()}
-          className="p-3 text-zinc-400 hover:text-zinc-600 transition-colors disabled:opacity-50 dark:hover:text-zinc-300"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-600 disabled:opacity-50 dark:hover:text-zinc-300"
         >
-          <Paperclip size={20} />
+          <Paperclip className="size-5" />
           <input
             type="file"
             accept=".txt,.md,.json,.csv"
@@ -90,7 +90,7 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
           onKeyDown={handleKeyDown}
           placeholder="Type your message..."
           disabled={disabled}
-          className="max-h-32 min-h-[44px] w-full resize-none bg-transparent py-3 text-sm focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
+          className="min-h-[36px] w-full resize-none bg-transparent py-2 text-sm leading-5 focus:outline-none disabled:cursor-not-allowed disabled:opacity-50"
           rows={1}
         />
 
@@ -98,12 +98,12 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
           type="button"
           disabled={disabled || (!input.trim() && !fileContext)}
           onClick={handleSend}
-          className="m-2 rounded-xl bg-black p-2 text-white hover:bg-zinc-800 transition-colors disabled:cursor-not-allowed disabled:opacity-50 dark:bg-white dark:text-black dark:hover:bg-zinc-200"
+          className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
         >
-          <Send size={16} className="translate-x-[-1px] translate-y-[1px]" />
+          <Send className="size-4" />
         </button>
       </div>
-      <div className="mt-2 text-center text-[10px] text-zinc-400">
+      <div className="mt-1.5 text-center text-[10px] text-zinc-400">
         Demo UI may take a few seconds to respond. Press Shift-Enter for new line.
       </div>
     </div>

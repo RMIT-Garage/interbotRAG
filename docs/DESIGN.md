@@ -5,6 +5,30 @@ Read it before creating or editing any component, page, or stylesheet.
 
 ---
 
+## Internbot Brand Foundation
+
+- Product name in UI and copy is always `Internbot` (title case).
+- Visual direction is modern minimal: neutral surfaces, single primary accent, restrained motion.
+- Core brand assets live in `frontend/public`:
+  - `logo-mark.svg`
+  - `logo-lockup.svg`
+  - `favicon.svg` and `icon.svg`
+
+### Token baseline (implemented in `frontend/src/app/globals.css`)
+
+| Token | Value |
+|-------|-------|
+| `--background` | `#f4f7fb` |
+| `--foreground` | `#121926` |
+| `--surface` | `#ffffff` |
+| `--brand-500` | `#3f6ee8` |
+| `--brand-600` | `#345ed3` |
+| `--border` | `#d9e2ef` |
+
+Use semantic Tailwind utilities generated from these tokens (`bg-brand-500`, `text-brand-900`, `bg-surface`, `border-border`) instead of ad hoc color mixes.
+
+---
+
 ## Foundation: Tailwind CSS v4
 
 This project uses Tailwind v4 with **CSS-first configuration** — there is no `tailwind.config.js`.

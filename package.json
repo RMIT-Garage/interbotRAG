@@ -1,5 +1,5 @@
 {
-  "name": "garage-boilerplate",
+  "name": "internbot-platform",
   "version": "0.1.0",
   "private": true,
   "engines": {
@@ -16,11 +16,14 @@
     "lint": "pnpm -r lint",
     "format": "pnpm -r format",
     "typecheck": "pnpm -r typecheck",
-    "emulator": "docker compose up -d",
-    "emulator:setup": "docker compose build firebase-emulators && docker compose up -d firebase-emulators",
+    "emulator": "docker compose up -d && node scripts/seed-test-account-after-emulator.cjs",
+    "emulator:setup": "docker compose build firebase-emulators && docker compose up -d firebase-emulators && node scripts/seed-test-account-after-emulator.cjs",
     "emulator:down": "docker compose down",
     "emulator:logs": "docker compose logs -f",
     "bootstrap": "node scripts/bootstrap.js",
+    "grant-admin": "node scripts/grant-admin-emulator.cjs",
+    "supabase:schema": "npx --yes supabase@2.95.4 db query -f backend/supabase/schema.sql --linked --workdir .",
+    "seed:test-account": "node scripts/ensure-test-account.cjs",
     "validate": "node scripts/validate-placeholders.js",
     "hooks": "lefthook install",
     "prepare": "lefthook install"

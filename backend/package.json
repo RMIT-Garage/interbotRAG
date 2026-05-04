@@ -18,7 +18,9 @@
     "benchmark": "tsx src/benchmarkRunner.ts",
     "benchmark:smoke": "tsx src/benchmarkRunner.ts --mode=smoke",
     "benchmark:full": "tsx src/benchmarkRunner.ts --mode=full --fixtures=false",
-    "benchmark:ci": "tsx src/benchmarkRunner.ts --mode=smoke --fixtures=true"
+    "benchmark:ci": "tsx src/benchmarkRunner.ts --mode=smoke --fixtures=true",
+    "ingest:contract-sample": "tsx scripts/ingestContractSample.ts",
+    "ingest:faq-students-sample": "tsx scripts/ingestFaqStudentsSample.ts"
   },
   "engines": {
     "node": "22"

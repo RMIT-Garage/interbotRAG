@@ -1,6 +1,6 @@
-# Garage Boilerplate
+# Internbot Platform
 
-> Opinionated Next.js + Firebase monorepo for tech consultancy client projects.
+> Compliance-first internship assistant platform powered by Next.js, Firebase, and Gemini.
 
 ## Author
 
@@ -88,7 +88,7 @@ If something fails, check **[Troubleshooting (emulators)](#troubleshooting-emula
 #### Prefer manual commands instead of `bootstrap`?
 
 ```bash
-git clone https://github.com/your-org/garage-boilerplate my-project
+git clone https://github.com/your-org/internbot-platform my-project
 cd my-project
 pnpm install
 cp frontend/.env.example frontend/.env.local   # if you do not have .env.local yet

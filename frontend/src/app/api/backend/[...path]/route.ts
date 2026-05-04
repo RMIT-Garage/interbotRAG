@@ -7,12 +7,19 @@
  * forwards requests server-side, where CORS does not apply.
  *
  * Usage: /api/backend/<path> → <BACKEND_BASE>/api/<path>
+ *
+ * BACKEND_* must include the Functions **name** segment (this codebase exports `api`), e.g.
+ * http://127.0.0.1:5001/{projectId}/{region}/api
  */
 
 import { NextRequest, NextResponse } from 'next/server'
 
 const BACKEND_BASE =
-  (process.env.BACKEND_API_BASE_URL ?? process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ?? 'http://127.0.0.1:5001/internbotrag/australia-southeast1').replace(/\/$/, '')
+  (
+    process.env.BACKEND_API_BASE_URL ??
+    process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ??
+    'http://127.0.0.1:5001/internbotrag/australia-southeast1/api'
+  ).replace(/\/$/, '')
 
 async function proxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params

@@ -5,6 +5,7 @@ interface GeminiEmbeddingProviderOptions {
   apiKey?: string
   model?: string
   endpoint?: string
+  outputDimensionality?: number
 }
 
 interface GeminiEmbeddingResponse {
@@ -20,11 +21,15 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
   private readonly apiKey: string
   private readonly model: string
   private readonly endpoint: string
+  private readonly outputDimensionality?: number
 
   constructor(options: GeminiEmbeddingProviderOptions = {}) {
     this.apiKey = options.apiKey ?? process.env.GEMINI_API_KEY ?? ''
     this.model = options.model ?? process.env.GEMINI_EMBEDDING_MODEL ?? DEFAULT_MODEL
     this.endpoint = options.endpoint ?? process.env.GEMINI_ENDPOINT ?? DEFAULT_ENDPOINT
+    this.outputDimensionality = parseOutputDimensionality(
+      options.outputDimensionality ?? process.env.GEMINI_EMBEDDING_DIMENSION,
+    )
 
     if (!this.apiKey) {
       throw new ValidationError('GEMINI_API_KEY is required for embeddings')
@@ -43,6 +48,7 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
           content: {
             parts: [{ text }],
           },
+          ...(this.outputDimensionality ? { outputDimensionality: this.outputDimensionality } : {}),
         }),
       },
     )
@@ -60,4 +66,15 @@ export class GeminiEmbeddingProvider implements EmbeddingProvider {
 
     return values
   }
+}
+
+function parseOutputDimensionality(value: number | string | undefined): number | undefined {
+  if (typeof value === 'number') {
+    return Number.isFinite(value) && value > 0 ? Math.floor(value) : undefined
+  }
+  if (typeof value !== 'string' || value.trim() === '') {
+    return undefined
+  }
+  const parsed = Number.parseInt(value, 10)
+  return Number.isFinite(parsed) && parsed > 0 ? parsed : undefined
 }

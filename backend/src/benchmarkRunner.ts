@@ -108,7 +108,7 @@ function parseMode(raw: string): BenchmarkMode {
 }
 
 function parseModel(raw: string | undefined): string {
-  const model = raw ?? process.env.GEMINI_MODEL ?? 'gemini-2.0-flash-lite'
+  const model = raw ?? process.env.GEMINI_MODEL ?? 'gemini-2.5-flash-lite'
   if (!model.trim()) {
     throw new ValidationError('Model value cannot be empty')
   }

@@ -20,6 +20,11 @@ export const metadata: Metadata = {
   },
   description:
     'AI-assisted internship support with compliance-focused checks, grounded policy answers, and coordinator oversight.',
+  icons: {
+    icon: '/favicon.svg',
+    shortcut: '/favicon.svg',
+    apple: '/icon.svg',
+  },
 }
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
