@@ -2,6 +2,7 @@ import { initializeApp, getApps, cert, type App } from 'firebase-admin/app'
 import { getAuth } from 'firebase-admin/auth'
 import { getFirestore } from 'firebase-admin/firestore'
 import { getStorage } from 'firebase-admin/storage'
+import { readFileSync } from 'node:fs'
 
 function useEmulatorAdmin(): boolean {
   // USE_EMULATOR: local Express / scripts. FUNCTIONS_EMULATOR: Firebase Functions emulator worker
@@ -17,12 +18,19 @@ function getAdminApp(): App {
   }
 
   const encodedKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64
-  if (!encodedKey) {
+  const credentialsPath = process.env.GOOGLE_APPLICATION_CREDENTIALS
+
+  let serviceAccountJson: string
+  if (encodedKey) {
+    serviceAccountJson = Buffer.from(encodedKey, 'base64').toString('utf8')
+  } else if (credentialsPath) {
+    serviceAccountJson = readFileSync(credentialsPath, 'utf8')
+  } else {
     throw new Error('FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 is not set')
   }
 
   return initializeApp({
-    credential: cert(JSON.parse(Buffer.from(encodedKey, 'base64').toString('utf8'))),
+    credential: cert(JSON.parse(serviceAccountJson)),
     projectId: process.env.FIREBASE_PROJECT_ID,
   })
 }
