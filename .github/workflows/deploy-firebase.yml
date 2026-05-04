@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  id-token: write
 
 jobs:
   deploy:
@@ -37,38 +38,13 @@ jobs:
         with:
           version: 10
 
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_JSON }}
+
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
-
-      - name: Prepare Firebase credentials
-        shell: bash
-        env:
-          FIREBASE_SERVICE_ACCOUNT_KEY_BASE64: ${{ secrets.FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 }}
-        run: |
-          python - <<'PY'
-          import base64
-          import json
-          import os
-          from pathlib import Path
-
-          raw = (os.environ.get("FIREBASE_SERVICE_ACCOUNT_KEY_BASE64") or "").strip()
-          if not raw:
-              raise SystemExit("Missing FIREBASE_SERVICE_ACCOUNT_KEY_BASE64 secret")
-
-          def write_json(text: str) -> None:
-              obj = json.loads(text)
-              out = Path(os.environ["RUNNER_TEMP"]) / "gcp-sa.json"
-              out.write_text(json.dumps(obj), encoding="utf-8")
-
-          # Support either raw JSON secret value or base64-encoded JSON.
-          try:
-              write_json(raw)
-          except json.JSONDecodeError:
-              cleaned = "".join(ch for ch in raw if ch in "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=")
-              decoded = base64.b64decode(cleaned, validate=False).decode("utf-8")
-              write_json(decoded)
-          PY
-          echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/gcp-sa.json" >> "$GITHUB_ENV"
 
       - name: Deploy hosting, functions, and rules
         run: |
