@@ -70,4 +70,4 @@ jobs:
       - name: Deploy hosting, functions, and rules
         run: |
           npx firebase-tools experiments:enable webframeworks
-          npx firebase-tools deploy --project "$FIREBASE_PROJECT_ID" --only "hosting,functions,firestore:rules,storage"
+          npx firebase-tools deploy --force --project "$FIREBASE_PROJECT_ID" --only "hosting,functions,firestore:rules,storage"
