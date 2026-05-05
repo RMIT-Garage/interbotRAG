@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, XCircle, BookOpen, Lightbulb, Globe } from 'lucide-react'
+import { MessageBodyRenderer, type MessageContentBlock } from './MessageBodyRenderer'
 
 // ---------------------------------------------------------------------------
 // Shared types (mirror of backend StructuredChatData)
@@ -39,6 +40,8 @@ export interface WebSource {
 
 interface AssistantMessageProps {
   content: string
+  contentType?: 'plain' | 'markdown' | 'structured'
+  contentBlocks?: MessageContentBlock[]
   structuredData?: StructuredChatData
   sources?: RagSource[]
   webSources?: WebSource[]
@@ -190,13 +193,21 @@ function CheckerCard({ data, messageId }: { data: CheckerModelOutput; messageId:
 // FAQ card
 // ---------------------------------------------------------------------------
 
-function FaqCard({ data, messageId }: { data: FaqModelOutput; messageId: string }) {
+function FaqCard({
+  data,
+  messageId,
+  contentType,
+  contentBlocks,
+}: {
+  data: FaqModelOutput
+  messageId: string
+  contentType?: 'plain' | 'markdown' | 'structured'
+  contentBlocks?: MessageContentBlock[]
+}) {
   return (
     <div className="space-y-3">
       {/* Answer */}
-      <p className="whitespace-pre-wrap text-sm leading-relaxed text-zinc-800 dark:text-zinc-100">
-        {data.answer}
-      </p>
+      <MessageBodyRenderer content={data.answer} contentType={contentType} contentBlocks={contentBlocks} />
 
       {/* Confidence + context flag */}
       <div className="flex items-center gap-3">
@@ -282,14 +293,14 @@ function WebSourceList({ sources, messageId }: { sources: WebSource[]; messageId
         {sources.map((source, index) => (
           <li
             key={`${messageId}-web-${index}`}
-            className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+            className="overflow-hidden rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
           >
             <p className="font-medium text-zinc-700 dark:text-zinc-200">{source.title}</p>
             <a
               href={source.uri}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block text-brand-600 underline dark:text-brand-400"
+              className="mt-1 block max-w-full break-all text-brand-600 underline dark:text-brand-400"
             >
               {source.uri}
             </a>
@@ -304,7 +315,15 @@ function WebSourceList({ sources, messageId }: { sources: WebSource[]; messageId
 // Main export
 // ---------------------------------------------------------------------------
 
-export function AssistantMessage({ content, structuredData, sources, webSources, messageId }: AssistantMessageProps) {
+export function AssistantMessage({
+  content,
+  contentType,
+  contentBlocks,
+  structuredData,
+  sources,
+  webSources,
+  messageId,
+}: AssistantMessageProps) {
   const hasSources = sources && sources.length > 0
   const hasWebSources = webSources && webSources.length > 0
 
@@ -316,7 +335,7 @@ export function AssistantMessage({ content, structuredData, sources, webSources,
           <CheckerCard data={structuredData.data} messageId={messageId} />
         )}
         {structuredData.type === 'faq' && (
-          <FaqCard data={structuredData.data} messageId={messageId} />
+          <FaqCard data={structuredData.data} messageId={messageId} contentType={contentType} contentBlocks={contentBlocks} />
         )}
         {hasSources && (
           <RagSourceList sources={sources} messageId={messageId} />
@@ -329,7 +348,7 @@ export function AssistantMessage({ content, structuredData, sources, webSources,
   // Fallback: plain text + sources
   return (
     <div className="space-y-3">
-      <p className="whitespace-pre-wrap text-sm leading-relaxed">{content}</p>
+      <MessageBodyRenderer content={content} contentType={contentType} contentBlocks={contentBlocks} />
       {hasSources && (
         <RagSourceList sources={sources} messageId={messageId} />
       )}

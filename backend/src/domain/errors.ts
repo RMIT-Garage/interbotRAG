@@ -40,3 +40,10 @@ export class ValidationError extends DomainError {
     this.name = 'ValidationError'
   }
 }
+
+export class UpstreamServiceError extends DomainError {
+  constructor(message: string) {
+    super(message, 'UPSTREAM_SERVICE_ERROR')
+    this.name = 'UpstreamServiceError'
+  }
+}

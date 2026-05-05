@@ -22,6 +22,13 @@ export interface ChatResponse {
   reply: string
   feature: BenchmarkFeature
   structuredData?: StructuredChatData
+  contentType?: 'plain' | 'markdown' | 'structured'
+  contentVersion?: 'v1'
+  contentBlocks?: Array<
+    | { type: 'text'; text: string }
+    | { type: 'markdown'; text: string }
+    | { type: 'citation'; label: string; url?: string }
+  >
   sources: Array<{
     title: string
     section: string
@@ -31,6 +38,15 @@ export interface ChatResponse {
     title: string
     uri: string
   }>
+  debug?: {
+    webSearch: {
+      requested: boolean
+      attempted: boolean
+      used: boolean
+      sourceCount: number
+      fallbackTriggered: boolean
+    }
+  }
 }
 
 export class ChatService {
@@ -69,22 +85,55 @@ export class ChatService {
     })
 
     const structuredData = parseStructuredResponse(feature, response.rawText)
+    const hasFallbackReply = response.rawText.includes(FAQ_FALLBACK_REPLY)
+    const webSources = hasFallbackReply ? undefined : response.webSources
+    const webSearchAttempted = feature === 'faq-rag' && useWebSearch
+    const webSourceCount = webSources?.length ?? 0
+    const shouldHideRetrievedSources =
+      (structuredData?.type === 'faq' && structuredData.data.answered_from_context === false) ||
+      (feature === 'faq-rag' && hasFallbackReply)
+    const contentType = resolveContentType(structuredData, response.rawText)
+    const contentBlocks =
+      contentType === 'structured'
+        ? undefined
+        : [
+            {
+              type: contentType === 'markdown' ? 'markdown' : 'text',
+              text: response.rawText,
+            } as const,
+          ]
 
     return {
       reply: response.rawText,
       feature,
       structuredData,
-      sources: retrievedChunks.map((chunk) => ({
-        title: chunk.title,
-        section: chunk.section,
-        sourceUrl: chunk.sourceUrl,
-      })),
-      webSources: response.webSources,
+      contentType,
+      contentVersion: 'v1',
+      contentBlocks,
+      sources: shouldHideRetrievedSources
+        ? []
+        : retrievedChunks.map((chunk) => ({
+            title: chunk.title,
+            section: chunk.section,
+            sourceUrl: chunk.sourceUrl,
+          })),
+      webSources,
+      debug: {
+        webSearch: {
+          requested: useWebSearch,
+          attempted: webSearchAttempted,
+          used: webSourceCount > 0,
+          sourceCount: webSourceCount,
+          fallbackTriggered: hasFallbackReply,
+        },
+      },
     }
   }
 }
 
 const MAX_ATTACHMENT_RETRIEVAL_CHARS = 2500
+const FAQ_FALLBACK_REPLY =
+  "I don't have enough information to answer that from the available policy documents. Please contact your course coordinator directly for guidance."
 
 function buildRetrievalQuery(userInput: string, fileContext?: string): string {
   if (!fileContext) {
@@ -106,6 +155,15 @@ function buildRetrievalQuery(userInput: string, fileContext?: string): string {
 
 function resolveTemperature(feature: BenchmarkFeature): number {
   return feature === 'faq-rag' ? 0.35 : 0.1
+}
+
+function resolveContentType(structuredData: StructuredChatData | undefined, rawText: string): 'plain' | 'markdown' | 'structured' {
+  if (structuredData) {
+    return 'structured'
+  }
+
+  const hasMarkdownSignals = /(^|\n)\s{0,3}#{1,6}\s|\*\*|(^|\n)\s*[-*]\s|\[[^\]]+\]\([^)]+\)|```/m.test(rawText)
+  return hasMarkdownSignals ? 'markdown' : 'plain'
 }
 
 function formatRetrievedChunks(chunks: RetrievedKnowledgeChunk[]): string {
@@ -149,7 +207,8 @@ function parseStructuredResponse(feature: BenchmarkFeature, rawText: string): St
   if (!parsed || typeof parsed !== 'object') return undefined
 
   if (feature === 'contract-checker' || feature === 'job-checker') {
-    const result = checkerModelOutputSchema.safeParse(parsed)
+    const normalized = normalizeCheckerOutput(parsed)
+    const result = checkerModelOutputSchema.safeParse(normalized)
     if (result.success) return { type: 'checker', data: result.data }
   } else if (feature === 'faq-rag') {
     const result = faqModelOutputSchema.safeParse(parsed)
@@ -157,4 +216,20 @@ function parseStructuredResponse(feature: BenchmarkFeature, rawText: string): St
   }
 
   return undefined
+}
+
+function normalizeCheckerOutput(parsed: object): object {
+  const asRecord = parsed as Record<string, unknown>
+  const scratchpad = asRecord.scratchpad
+
+  if (Array.isArray(scratchpad)) {
+    return {
+      ...asRecord,
+      scratchpad: scratchpad
+        .map((line) => (typeof line === 'string' ? line : JSON.stringify(line)))
+        .join('\n'),
+    }
+  }
+
+  return asRecord
 }

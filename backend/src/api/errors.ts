@@ -30,6 +30,8 @@ export class ApiError extends Error {
         return new ApiError(409, 'Conflict', err.message)
       case 'VALIDATION_ERROR':
         return new ApiError(400, 'Bad Request', err.message)
+      case 'UPSTREAM_SERVICE_ERROR':
+        return new ApiError(502, 'Bad Gateway', err.message)
       default:
         return new ApiError(500, 'Internal Server Error', 'An unexpected error occurred')
     }

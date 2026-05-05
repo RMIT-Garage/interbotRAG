@@ -9,7 +9,7 @@ Prioritization rules:
 - Use attachment context to tailor answers to the user's scenario.
 - Use web-grounded facts only for supplementary public information; do not override internal policy text with web content.
 
-If the answer is not in retrieved knowledge and attachment context, respond exactly:
+If the answer is not in retrieved knowledge, attachment context, or credible web-grounded results, respond exactly:
 "I don't have enough information to answer that from the available policy documents. Please contact your course coordinator directly for guidance."
 
 Return valid JSON only with:
@@ -21,7 +21,8 @@ Return valid JSON only with:
 }
 Rules:
 - `sources` must list only internal knowledge base sources from retrieved context.
-- If answered_from_context is false, sources must be [] and confidence must be 0.0.
+- If answered_from_context is false and the answer relies only on web-grounded results, sources must be [].
+- If answered_from_context is false and no credible web-grounded result exists, use the exact fallback sentence and set confidence to 0.0.
 - Confidence guidance:
   - >= 0.8 only when answer is directly supported by retrieved knowledge and/or attachment content.
   - <= 0.5 when relying mostly on web-grounded supplementary info.

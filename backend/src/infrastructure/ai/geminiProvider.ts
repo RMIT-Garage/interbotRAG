@@ -1,4 +1,4 @@
-import { ValidationError } from '../../domain/errors'
+import { UpstreamServiceError, ValidationError } from '../../domain/errors'
 import type {
   GenerateTextRequest,
   GenerateTextResponse,
@@ -157,7 +157,7 @@ export class GeminiModelProvider implements ModelProvider {
         const canRetry = attempt < this.maxRetries && isRetryableStatus(response.status)
 
         if (!canRetry) {
-          throw new ValidationError(`Gemini API request failed (${response.status}): ${errText}`)
+          throw new UpstreamServiceError(`Gemini API request failed (${response.status}): ${errText}`)
         }
 
         const retryDelayMs =
@@ -173,7 +173,13 @@ export class GeminiModelProvider implements ModelProvider {
       const rawText = primaryCandidate?.content?.parts?.map((part) => part.text ?? '').join('') ?? ''
 
       if (!rawText) {
-        throw new ValidationError('Gemini returned empty content')
+        const canRetryEmpty = attempt < this.maxRetries
+        if (canRetryEmpty) {
+          const retryDelayMs = getBackoffDelayMs(attempt, this.baseRetryDelayMs, this.maxRetryDelayMs)
+          await sleep(retryDelayMs)
+          continue
+        }
+        throw new UpstreamServiceError('Gemini returned empty content after retries')
       }
 
       const webSources = mapGroundingSources(primaryCandidate?.groundingMetadata?.groundingChunks)
@@ -191,7 +197,7 @@ export class GeminiModelProvider implements ModelProvider {
       }
     }
 
-    throw new ValidationError('Gemini API request retries exhausted')
+    throw new UpstreamServiceError('Gemini API request retries exhausted')
   }
 }
 

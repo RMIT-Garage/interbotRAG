@@ -59,7 +59,8 @@ function normalizeModelName(model?: string): string | undefined {
   if (!model) return undefined
   const trimmed = model.trim()
   if (!trimmed) return undefined
-  return trimmed.startsWith('models/') ? trimmed.slice('models/'.length) : trimmed
+  const normalized = trimmed.startsWith('models/') ? trimmed.slice('models/'.length) : trimmed
+  return isDeprecatedGeminiModel(normalized) ? undefined : normalized
 }
 
 interface GeminiModelListResponse {
@@ -91,7 +92,12 @@ async function listGeminiGenerateModels(): Promise<string[]> {
     .map((model) => model.name ?? '')
     .map((name) => (name.startsWith('models/') ? name.slice('models/'.length) : name))
     .filter((name) => name.startsWith('gemini-') || name.startsWith('gemma-'))
+    .filter((name) => !isDeprecatedGeminiModel(name))
     .sort((a, b) => a.localeCompare(b))
 
   return Array.from(new Set(models))
+}
+
+function isDeprecatedGeminiModel(model: string): boolean {
+  return model.startsWith('gemini-2.0-')
 }

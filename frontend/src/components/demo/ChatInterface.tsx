@@ -4,12 +4,16 @@ import { useEffect, useRef, useState } from 'react'
 import { Globe, Sparkles } from 'lucide-react'
 import { ChatInputArea } from './ChatInputArea'
 import { AssistantMessage, type StructuredChatData, type RagSource, type WebSource } from './AssistantMessage'
+import type { MessageContentBlock } from './MessageBodyRenderer'
 import { toast } from 'sonner'
 
 export type Message = {
   id: string
   role: 'user' | 'assistant'
   content: string
+  contentType?: 'plain' | 'markdown' | 'structured'
+  contentVersion?: 'v1'
+  contentBlocks?: MessageContentBlock[]
   fileAttached?: boolean
   structuredData?: StructuredChatData
   sources?: RagSource[]
@@ -20,6 +24,14 @@ interface ChatInterfaceProps {
   feature: string
 }
 
+function isDeprecatedModel(model: string): boolean {
+  return model.startsWith('gemini-2.0-')
+}
+
+function isWebSearchModelSupported(model: string): boolean {
+  return model.startsWith('gemini-') && !isDeprecatedModel(model)
+}
+
 export function ChatInterface({ feature }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isTyping, setIsTyping] = useState(false)
@@ -27,6 +39,8 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
   const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash')
   const [useWebSearch, setUseWebSearch] = useState<boolean>(feature === 'faq-rag')
   const scrollRef = useRef<HTMLDivElement>(null)
+  const sanitizedAvailableModels = availableModels.filter((model) => !isDeprecatedModel(model))
+  const compatibleWebSearchModels = sanitizedAvailableModels.filter((model) => isWebSearchModelSupported(model))
 
   useEffect(() => {
     // Scroll to bottom whenever messages change
@@ -46,7 +60,11 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
   useEffect(() => {
     const saved = typeof window !== 'undefined' ? window.localStorage.getItem('chatModel') : null
     if (saved) {
-      setSelectedModel(saved)
+      const normalizedSaved = isDeprecatedModel(saved) ? 'gemini-2.5-flash' : saved
+      setSelectedModel(normalizedSaved)
+      if (typeof window !== 'undefined' && normalizedSaved !== saved) {
+        window.localStorage.setItem('chatModel', normalizedSaved)
+      }
     }
   }, [])
 
@@ -59,7 +77,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
         })
         if (!response.ok) return
         const data = (await response.json()) as { models?: string[] }
-        const models = Array.isArray(data.models) ? data.models : []
+        const models = (Array.isArray(data.models) ? data.models : []).filter((model) => !isDeprecatedModel(model))
         if (!active || models.length === 0) return
         setAvailableModels(models)
         if (!models.includes(selectedModel)) {
@@ -78,6 +96,18 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
       active = false
     }
   }, [selectedModel])
+
+  useEffect(() => {
+    if (!useWebSearch || feature !== 'faq-rag') return
+    if (isWebSearchModelSupported(selectedModel)) return
+
+    const fallbackModel = compatibleWebSearchModels[0]
+    if (fallbackModel) {
+      setSelectedModel(fallbackModel)
+      if (typeof window !== 'undefined') window.localStorage.setItem('chatModel', fallbackModel)
+      toast.info(`Switched to ${fallbackModel} because web search requires a Gemini model.`)
+    }
+  }, [feature, selectedModel, useWebSearch, compatibleWebSearchModels])
 
   const handleSend = async (messageText: string, fileContext?: string) => {
     const newMsg: Message = {
@@ -103,7 +133,10 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
           feature,
           userInput: messageText || '[File uploaded]',
           fileContext,
-          model: selectedModel,
+          model:
+            feature === 'faq-rag' && useWebSearch && !isWebSearchModelSupported(selectedModel)
+              ? compatibleWebSearchModels[0] ?? selectedModel
+              : selectedModel,
           useWebSearch: feature === 'faq-rag' ? useWebSearch : false,
         }),
       })
@@ -125,6 +158,12 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
         id: crypto.randomUUID(),
         role: 'assistant',
         content: data.reply || '(No response text)',
+        contentType:
+          data.contentType === 'plain' || data.contentType === 'markdown' || data.contentType === 'structured'
+            ? data.contentType
+            : undefined,
+        contentVersion: data.contentVersion === 'v1' ? 'v1' : undefined,
+        contentBlocks: Array.isArray(data.contentBlocks) ? data.contentBlocks : undefined,
         structuredData: data.structuredData ?? undefined,
         sources: Array.isArray(data.sources) ? data.sources : undefined,
         webSources: Array.isArray(data.webSources) ? data.webSources : undefined,
@@ -132,6 +171,13 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
 
       setMessages((prev) => [...prev, assistantMsg])
     } catch (error) {
+      if (error instanceof Error && /no longer available|NOT_FOUND|models\/gemini-2\.0-/i.test(error.message)) {
+        const fallback = compatibleWebSearchModels[0] ?? 'gemini-2.5-flash'
+        setSelectedModel(fallback)
+        if (typeof window !== 'undefined') window.localStorage.setItem('chatModel', fallback)
+        toast.error(`Selected model is unavailable. Switched to ${fallback}.`)
+        return
+      }
       const message =
         error instanceof Error && error.message
           ? error.message
@@ -173,16 +219,26 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5" ref={scrollRef}>
         <div className="mx-auto mb-3 flex w-full max-w-4xl flex-wrap justify-end gap-2">
           {feature === 'faq-rag' ? (
-            <label className="inline-flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 text-xs text-zinc-600 shadow-sm">
-              <Globe className="size-3.5 text-zinc-500" />
-              Search the web
-              <input
-                type="checkbox"
-                checked={useWebSearch}
-                onChange={(e) => setUseWebSearch(e.target.checked)}
-                className="h-4 w-4 accent-brand-500"
-              />
-            </label>
+            <div className="inline-flex flex-col gap-1">
+              <label className="inline-flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 text-xs text-zinc-600 shadow-sm">
+                <Globe className="size-3.5 text-zinc-500" />
+                Search the web
+                <input
+                  type="checkbox"
+                  checked={useWebSearch}
+                  onChange={(e) => setUseWebSearch(e.target.checked)}
+                  className="h-4 w-4 accent-brand-500"
+                />
+              </label>
+              {useWebSearch && !isWebSearchModelSupported(selectedModel) ? (
+                <p className="text-[11px] text-amber-600">
+                  Web search not supported for current model. Select a Gemini model.
+                </p>
+              ) : null}
+              {useWebSearch && isWebSearchModelSupported(selectedModel) ? (
+                <p className="text-[11px] text-zinc-500">Web search enabled via Gemini grounding.</p>
+              ) : null}
+            </div>
           ) : null}
           <div className="inline-flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 shadow-sm">
             <div className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-900">
@@ -202,7 +258,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
                 className="min-w-52 appearance-none rounded-lg border bg-background py-1.5 pl-3 pr-8 text-xs font-medium text-zinc-700 focus:outline-none focus:ring-2 focus:ring-brand-500/25"
                 aria-label="Select chat model"
               >
-                {(availableModels.length > 0 ? availableModels : [selectedModel]).map((model) => (
+                {(sanitizedAvailableModels.length > 0 ? sanitizedAvailableModels : [selectedModel]).map((model) => (
                   <option key={model} value={model}>
                     {model}
                   </option>
@@ -258,6 +314,8 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
                     <AssistantMessage
                       messageId={msg.id}
                       content={msg.content}
+                      contentType={msg.contentType}
+                      contentBlocks={msg.contentBlocks}
                       structuredData={msg.structuredData}
                       sources={msg.sources}
                       webSources={msg.webSources}
