@@ -13,21 +13,11 @@ export function mountOpenApiDocs(app: Express): void {
   app.use(
     '/docs',
     swaggerUi.serve,
-    swaggerUi.setup(undefined, {
-      swaggerOptions: {
-        // Relative URL keeps it working behind prefixed function paths,
-        // e.g. /api/docs -> /api/openapi.json and /api/api/docs -> /api/api/openapi.json
-        url: 'openapi.json',
-      },
-    }),
+    swaggerUi.setup(getOpenApiDocument()),
   )
   app.use(
     '/api/docs',
     swaggerUi.serve,
-    swaggerUi.setup(undefined, {
-      swaggerOptions: {
-        url: 'openapi.json',
-      },
-    }),
+    swaggerUi.setup(getOpenApiDocument()),
   )
 }
