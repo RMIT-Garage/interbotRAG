@@ -14,16 +14,46 @@
 
 import { NextRequest, NextResponse } from 'next/server'
 
-const BACKEND_BASE =
-  (
-    process.env.BACKEND_API_BASE_URL ??
-    process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ??
-    'http://127.0.0.1:5001/internbotrag/australia-southeast1/api'
-  ).replace(/\/$/, '')
+const DEFAULT_FUNCTIONS_REGION = 'australia-southeast1'
+
+function getBackendBase(): string {
+  const explicit =
+    process.env.BACKEND_API_BASE_URL ?? process.env.NEXT_PUBLIC_BACKEND_API_BASE_URL ?? ''
+  if (explicit) return explicit.replace(/\/$/, '')
+
+  const useEmulator =
+    process.env.NEXT_PUBLIC_USE_FIREBASE_EMULATOR === 'true' || process.env.USE_EMULATOR === 'true'
+
+  if (useEmulator || process.env.NODE_ENV !== 'production') {
+    const projectId =
+      process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? process.env.FIREBASE_PROJECT_ID ?? 'internbotrag'
+    return `http://127.0.0.1:5001/${projectId}/${DEFAULT_FUNCTIONS_REGION}/api`.replace(/\/$/, '')
+  }
+
+  const projectId = process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID ?? process.env.FIREBASE_PROJECT_ID
+  if (!projectId) {
+    throw new Error(
+      'Missing NEXT_PUBLIC_FIREBASE_PROJECT_ID (or FIREBASE_PROJECT_ID) — cannot derive production Functions URL for /api/backend proxy'
+    )
+  }
+
+  // Firebase Functions v2 HTTPS URL shape (matches Express mounting under /api on function `api`)
+  return `https://${DEFAULT_FUNCTIONS_REGION}-${projectId}.cloudfunctions.net/api`.replace(/\/$/, '')
+}
 
 async function proxy(req: NextRequest, { params }: { params: Promise<{ path: string[] }> }) {
   const { path } = await params
-  const upstreamUrl = `${BACKEND_BASE}/api/${path.join('/')}`
+  let backendBase: string
+  try {
+    backendBase = getBackendBase()
+  } catch (err) {
+    console.error('[backend-proxy] Misconfigured backend base:', err)
+    return NextResponse.json(
+      { error: 'Server misconfigured', detail: err instanceof Error ? err.message : String(err) },
+      { status: 500 }
+    )
+  }
+  const upstreamUrl = `${backendBase}/api/${path.join('/')}`
 
   // Forward the original request body and all headers (including Authorization)
   const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined
