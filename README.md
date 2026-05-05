@@ -488,6 +488,7 @@ Use a whitelist approach: import only skills you actively use and review them be
 | RAG MVP | [docs/RAG-MVP.md](docs/RAG-MVP.md) |
 | RAG setup playbook | [docs/RAG-SETUP-PLAYBOOK.md](docs/RAG-SETUP-PLAYBOOK.md) |
 | Backend | [docs/BACKEND.md](docs/BACKEND.md) |
+| Public HTTP API (v1) | [docs/PUBLIC_API.md](docs/PUBLIC_API.md) |
 | Frontend | [docs/FRONTEND.md](docs/FRONTEND.md) |
 | Infrastructure | [docs/INFRASTRUCTURE.md](docs/INFRASTRUCTURE.md) |
 | Security | [docs/SECURITY.md](docs/SECURITY.md) |

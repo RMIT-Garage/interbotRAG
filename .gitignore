@@ -19,6 +19,7 @@ supabase/.temp
 
 # Backend build outputs
 backend/lib/
+backend/dist/
 backend/*.tsbuildinfo
 
 # Monorepo uses pnpm; a root npm lockfile confuses Firebase webframeworks Cloud Build (npm ci).

@@ -1,13 +1,13 @@
 import { Router, type Router as ExpressRouter } from 'express'
 import type { Request, Response, NextFunction } from 'express'
-import { ChatService } from '../../application/chat/ChatService'
-import { ValidationError } from '../../domain/errors'
-import { GeminiModelProvider } from '../../infrastructure/ai/geminiProvider'
-import { SupabaseKnowledgeRetriever } from '../../infrastructure/retrieval/supabaseKnowledgeRetriever'
-import { listGeminiGenerateModels, normalizeModelName } from '../chat/geminiModels'
-import { chatMessageRequestSchema } from '../schemas/chat'
+import { ChatService } from '../../../application/chat/ChatService'
+import { ValidationError } from '../../../domain/errors'
+import { GeminiModelProvider } from '../../../infrastructure/ai/geminiProvider'
+import { SupabaseKnowledgeRetriever } from '../../../infrastructure/retrieval/supabaseKnowledgeRetriever'
+import { listGeminiGenerateModels, normalizeModelName } from '../../chat/geminiModels'
+import { chatMessageRequestSchema } from '../../schemas/chat'
 
-export const chatRouter: ExpressRouter = Router()
+export const v1ChatRouter: ExpressRouter = Router()
 
 function createChatService(model?: string): ChatService {
   return new ChatService({
@@ -16,7 +16,7 @@ function createChatService(model?: string): ChatService {
   })
 }
 
-chatRouter.post('/message', async (req: Request, res: Response, next: NextFunction) => {
+v1ChatRouter.post('/chat/message', async (req: Request, res: Response, next: NextFunction) => {
   try {
     const parsed = chatMessageRequestSchema.safeParse(req.body)
     if (!parsed.success) {
@@ -38,7 +38,7 @@ chatRouter.post('/message', async (req: Request, res: Response, next: NextFuncti
   }
 })
 
-chatRouter.get('/models', async (_req: Request, res: Response, next: NextFunction) => {
+v1ChatRouter.get('/chat/models', async (_req: Request, res: Response, next: NextFunction) => {
   try {
     const models = await listGeminiGenerateModels()
     res.json({ models })

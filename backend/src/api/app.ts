@@ -3,14 +3,25 @@ import cors from 'cors'
 import helmet from 'helmet'
 import rateLimit from 'express-rate-limit'
 import { createAuthMiddleware } from './middleware/auth'
+import { createApiKeyMiddleware } from './middleware/apiKey'
+import { createRateLimitByKey } from './middleware/rateLimitByKey'
 import { errorHandler } from './middleware/errorHandler'
 import { healthRouter } from './routes/health'
 import { apiRouter } from './routes'
+import { v1PublicRouter, v1ProtectedRouter } from './routes/v1'
 import { firebaseTokenVerifier } from '../infrastructure/auth/firebaseTokenVerifier'
+import { FirestoreApiKeyRepository } from '../infrastructure/apiKeys/firestoreApiKeyRepository'
+import { ApiKeyService } from '../application/apiKeys/ApiKeyService'
 import type { TokenVerifier } from '../application/ports/tokenVerifier'
+import type { ApiKeyRepository } from '../application/ports/apiKeyRepository'
+import { mountOpenApiDocs } from './openapi/swagger'
+
+import './openapi/extendZodOpenApi'
+import '../types/expressAugment'
 
 interface AppOptions {
   tokenVerifier?: TokenVerifier
+  apiKeyRepository?: ApiKeyRepository
 }
 
 /** Global rate limiter — 300 requests per 15 min per IP */
@@ -27,42 +38,59 @@ const globalLimiter = rateLimit({
   },
 })
 
+function resolveApiKeyCacheTtlMs(): number {
+  const secondsRaw = process.env.API_KEY_CACHE_TTL_SECONDS
+  const seconds = secondsRaw ? Number.parseInt(secondsRaw, 10) : 60
+  const safe = Number.isFinite(seconds) && seconds > 0 ? seconds : 60
+  return safe * 1000
+}
+
 /**
  * Express app factory — composition root.
  * Wires infrastructure implementations to application/api layers.
  *
  * tokenVerifier defaults to firebaseTokenVerifier (production).
- * Pass a mock in tests: createApp({ tokenVerifier: mockVerifier })
+ * Pass a mock in tests: createApp({ tokenVerifier: mockTokenVerifier })
  */
-export function createApp({ tokenVerifier = firebaseTokenVerifier }: AppOptions = {}): Express {
+export function createApp({ tokenVerifier = firebaseTokenVerifier, apiKeyRepository }: AppOptions = {}): Express {
   const app = express()
-  // Requests come through Firebase/Next proxies in local+cloud environments.
-  // Trust first proxy so middleware (e.g. rate limiter) reads client IP reliably.
   app.set('trust proxy', 1)
 
   const authMiddleware = createAuthMiddleware(tokenVerifier)
+  const apiKeyRepo = apiKeyRepository ?? new FirestoreApiKeyRepository()
+  const apiKeyService = new ApiKeyService(apiKeyRepo)
+  const apiKeyMiddleware = createApiKeyMiddleware({
+    apiKeyService,
+    cacheTtlMs: resolveApiKeyCacheTtlMs(),
+  })
+  const rateLimitByKey = createRateLimitByKey()
 
-  // Security headers (must be first)
   app.use(helmet())
 
-  // CORS - Reflect the request origin, allowing all clients. 
-  // Security is enforced via the Authorization bearer token middleware instead.
-  app.use(cors({ origin: true }))
+  app.use(
+    cors((req, callback) => {
+      if (req.path.startsWith('/api/v1')) {
+        callback(null, { origin: false })
+        return
+      }
+      callback(null, { origin: true })
+    }),
+  )
 
-  // Rate limiting — applied before any route logic
   app.use(globalLimiter)
 
-  // Body parsers — allow larger chat attachments while keeping bounded payloads.
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 
-  // Public routes (no auth)
   app.use('/api/health', healthRouter)
 
-  // Protected routes — requires valid Firebase ID token
+  mountOpenApiDocs(app)
+
+  app.use('/api/v1', v1PublicRouter)
+  app.use('/api/v1', apiKeyMiddleware, rateLimitByKey, v1ProtectedRouter)
+
   app.use('/api', authMiddleware, apiRouter)
 
-  // 404 handler
   app.use((_req, res) => {
     res.status(404).json({
       type: 'https://httpstatuses.io/404',
@@ -72,7 +100,6 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier }: AppOptions 
     })
   })
 
-  // Global error handler (must be last)
   app.use(errorHandler)
 
   return app

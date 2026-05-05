@@ -36,7 +36,9 @@
 | `SUPABASE_URL` | backend | No | No | Supabase project URL for the knowledge retrieval adapter |
 | `SUPABASE_ANON_KEY` | backend | No | No | Optional low-privilege Supabase key for future read-only clients |
 | `SUPABASE_SERVICE_ROLE_KEY` | backend | **Yes** | No | Service role key used by the backend retrieval adapter |
-| `ALLOW_UNAUTHENTICATED_CHAT` | backend | No | No | Set `true` to allow demo-style bearer `no-token` requests on non-chat routes |
+| `API_KEY_RATE_LIMIT_PER_MIN` | backend | No | No | Per API key rate limit for `/api/v1/*` protected routes (default `60`) |
+| `API_KEY_CACHE_TTL_SECONDS` | backend | No | No | In-process cache TTL for API key Firestore lookups (default `60`) |
+| `PUBLIC_API_BASE_URL` | backend | No | No | Optional OpenAPI `servers[0].url` (e.g. Functions URL ending in `/api`) |
 | `STITCH_API_KEY` | root | **Yes** | No | Google Stitch API key (for Claude Code MCP) |
 
 ## Generating the Service Account Key (Base64)

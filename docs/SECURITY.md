@@ -56,20 +56,18 @@ Configuration: `.gitleaks.toml` — allowlist for template placeholder patterns 
 
 ### CORS
 
-```typescript
-app.use(cors({ origin: process.env.CORS_ORIGIN ?? false }))
-```
+The Express app uses **dynamic CORS**:
 
-`false` is the default — all cross-origin requests are denied unless `CORS_ORIGIN` is explicitly set. Set it in `backend/.env` / Cloud Functions environment config:
-```bash
-CORS_ORIGIN=https://your-app.web.app
-```
+- **`/api/v1/*`:** `origin: false` — no browser CORS allowance for the public API surface (intended for **server-to-server** clients with API keys).
+- **All other routes:** `origin: true` — reflects the request `Origin` (useful for local demos and first-party tooling). **Authentication** is still enforced on protected routes (Firebase ID token or API key as documented).
 
-Do not set `CORS_ORIGIN=*` in production.
+Older docs referenced `CORS_ORIGIN`; the runtime policy is implemented in `backend/src/api/app.ts` as above.
 
 ### Rate Limiting
 
-Global limiter: 300 requests per 15 minutes per IP address. Responses use RFC 9457 format with `status: 429`.
+Global limiter: **300 requests per 15 minutes per IP address**. Responses use RFC 9457 format with `status: 429`.
+
+**Public API (`/api/v1/*`, authenticated):** additional **per API key** limiter (default **60 requests per minute** per key; override with `API_KEY_RATE_LIMIT_PER_MIN`).
 
 Add per-endpoint tighter limits on sensitive operations (auth flows, writes):
 ```typescript
@@ -87,7 +85,7 @@ router.post('/sensitive-action', strictLimiter, handler)
 
 ### Body Size
 
-Request body is capped at `1mb` (`express.json({ limit: '1mb' })`). Routes that accept file uploads must handle their own higher limit on the specific route only — do not raise the global limit.
+JSON and urlencoded bodies are capped at **`2mb`** globally (`express.json` / `express.urlencoded`). Routes that accept very large uploads should use streaming or dedicated storage uploads instead of raising the global cap without review.
 
 ---
 

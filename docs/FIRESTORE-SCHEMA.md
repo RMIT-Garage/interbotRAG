@@ -46,4 +46,23 @@ This enables **lazy migration** — when a document is read, check `_schemaVersi
 
 ---
 
+## `api_keys` collection (backend-only)
+
+**Path:** `/api_keys/{keyHash}` where `keyHash` is **SHA-256 hex (64 chars)** of the full plaintext API key.
+
+**Access:** Written only by **Firebase Admin SDK** (CLI scripts `keys:issue` / `keys:revoke`). Clients never read this collection. Add/extend **Firestore security rules** to deny all client access if not already implied by default deny.
+
+| Field | Type | Required | Description |
+|-------|------|----------|-------------|
+| `label` | `string` | Yes | Human-readable label (e.g. `internbot-prod`) |
+| `env` | `'live' \| 'test'` | Yes | Key environment segment |
+| `platform` | `string` | Yes | Owning platform (default `internbot`) |
+| `revoked` | `boolean` | Yes | When `true`, the key must be rejected |
+| `createdAt` | `Timestamp` | Yes | Server timestamp at creation |
+| `createdAtIso` | `string` | Yes | ISO string mirror for operators / exports |
+
+Plaintext keys are never stored. See [PUBLIC_API.md](./PUBLIC_API.md).
+
+---
+
 <!-- Add new collection schemas below using the /firebase-collection skill -->
