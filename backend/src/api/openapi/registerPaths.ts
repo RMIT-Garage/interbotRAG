@@ -14,7 +14,7 @@ export function registerOpenApiPaths(registry: OpenAPIRegistry): void {
 
   registry.registerPath({
     method: 'get',
-    path: '/api/v1/health',
+    path: '/v1/health',
     tags: ['Health'],
     summary: 'Liveness check',
     responses: {
@@ -27,7 +27,7 @@ export function registerOpenApiPaths(registry: OpenAPIRegistry): void {
 
   registry.registerPath({
     method: 'post',
-    path: '/api/v1/chat/message',
+    path: '/v1/chat/message',
     tags: ['Chat'],
     summary: 'Send a chat message',
     description:
@@ -69,7 +69,7 @@ export function registerOpenApiPaths(registry: OpenAPIRegistry): void {
 
   registry.registerPath({
     method: 'get',
-    path: '/api/v1/chat/models',
+    path: '/v1/chat/models',
     tags: ['Chat'],
     summary: 'List Gemini models',
     description: 'Returns model ids suitable for the optional `model` field on chat requests.',

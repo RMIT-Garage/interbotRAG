@@ -18,8 +18,16 @@ Set `PUBLIC_API_BASE_URL` in the backend environment so generated OpenAPI `serve
 
 | Resource | Path | Auth |
 |----------|------|------|
-| OpenAPI 3.1 JSON | `GET /api/openapi.json` | No |
-| Swagger UI | `GET /api/docs` | No |
+| OpenAPI 3.1 JSON | `GET /openapi.json` | No |
+| Swagger UI | `GET /docs` | No |
+
+When deployed on Cloud Functions (`...cloudfunctions.net/api`), these resolve to:
+- `https://...cloudfunctions.net/api/openapi.json`
+- `https://...cloudfunctions.net/api/docs`
+
+Backward-compatible aliases are also available:
+- `/api/openapi.json`
+- `/api/docs`
 
 Regenerate a static file (e.g. for CI or publishing):
 

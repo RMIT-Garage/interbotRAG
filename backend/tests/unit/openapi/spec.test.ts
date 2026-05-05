@@ -10,9 +10,9 @@ describe('OpenAPI document', () => {
     }
 
     expect(doc.openapi).toBe('3.1.0')
-    expect(doc.paths?.['/api/v1/health']).toBeDefined()
-    expect(doc.paths?.['/api/v1/chat/message']).toBeDefined()
-    expect(doc.paths?.['/api/v1/chat/models']).toBeDefined()
+    expect(doc.paths?.['/v1/health']).toBeDefined()
+    expect(doc.paths?.['/v1/chat/message']).toBeDefined()
+    expect(doc.paths?.['/v1/chat/models']).toBeDefined()
     expect(doc.components?.securitySchemes?.bearerAuth?.type).toBe('http')
     expect(doc.components?.securitySchemes?.bearerAuth?.scheme).toBe('bearer')
   })

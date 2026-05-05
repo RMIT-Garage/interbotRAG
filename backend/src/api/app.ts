@@ -69,7 +69,7 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier, apiKeyReposit
 
   app.use(
     cors((req, callback) => {
-      if (req.path.startsWith('/api/v1')) {
+      if (req.path.startsWith('/v1') || req.path.startsWith('/api/v1')) {
         callback(null, { origin: false })
         return
       }
@@ -82,10 +82,16 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier, apiKeyReposit
   app.use(express.json({ limit: '2mb' }))
   app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 
+  app.use('/health', healthRouter)
   app.use('/api/health', healthRouter)
 
   mountOpenApiDocs(app)
 
+  // Canonical public API mount points (single prefix with Cloud Function base URL)
+  app.use('/v1', v1PublicRouter)
+  app.use('/v1', apiKeyMiddleware, rateLimitByKey, v1ProtectedRouter)
+
+  // Backward-compatible aliases for previously documented double-prefix paths
   app.use('/api/v1', v1PublicRouter)
   app.use('/api/v1', apiKeyMiddleware, rateLimitByKey, v1ProtectedRouter)
 
