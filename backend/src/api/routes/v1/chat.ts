@@ -23,12 +23,13 @@ v1ChatRouter.post('/chat/message', async (req: Request, res: Response, next: Nex
       throw new ValidationError('Invalid request payload')
     }
 
-    const { feature, userInput, fileContext, model, useWebSearch } = parsed.data
+    const { feature, userInput, fileContext, attachment, model, useWebSearch } = parsed.data
     const webSearchEnabled = process.env.GEMINI_ENABLE_GOOGLE_SEARCH !== 'false'
     const response = await createChatService(normalizeModelName(model)).generateResponse(
       feature,
       userInput,
       fileContext,
+      attachment,
       webSearchEnabled && (useWebSearch ?? false),
     )
 

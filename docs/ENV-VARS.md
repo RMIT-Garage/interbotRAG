@@ -27,6 +27,7 @@
 | `GEMINI_EMBEDDING_MODEL` | backend | No | No | Gemini embedding model for knowledge ingestion and retrieval (default: `text-embedding-004`) |
 | `GEMINI_ENDPOINT` | backend | No | No | Gemini API endpoint override (default Google Generative Language API) |
 | `GEMINI_ENABLE_GOOGLE_SEARCH` | backend | No | No | Set `false` to disable Gemini Google Search grounding for chat requests |
+| `GEMINI_ENABLE_CHECKER_WEB_SEARCH` | backend | No | No | Set `false` to disable web grounding for `contract-checker` and `job-checker` |
 | `BENCHMARK_PRICE_INPUT_PER_1K_USD` | backend | No | No | Input token price used for benchmark cost metrics |
 | `BENCHMARK_PRICE_OUTPUT_PER_1K_USD` | backend | No | No | Output token price used for benchmark cost metrics |
 | `BENCHMARK_REQUEST_DELAY_MS` | backend | No | No | Delay between benchmark calls to reduce burst rate-limits |

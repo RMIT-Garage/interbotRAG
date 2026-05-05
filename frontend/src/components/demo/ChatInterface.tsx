@@ -109,12 +109,16 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
     }
   }, [feature, selectedModel, useWebSearch, compatibleWebSearchModels])
 
-  const handleSend = async (messageText: string, fileContext?: string) => {
+  const handleSend = async (
+    messageText: string,
+    fileContext?: string,
+    attachment?: { mimeType: string; dataBase64: string; fileName?: string },
+  ) => {
     const newMsg: Message = {
       id: crypto.randomUUID(),
       role: 'user',
       content: messageText || '(Sent a file)',
-      fileAttached: !!fileContext,
+      fileAttached: !!fileContext || !!attachment,
     }
     
     setMessages((prev) => [...prev, newMsg])
@@ -133,6 +137,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
           feature,
           userInput: messageText || '[File uploaded]',
           fileContext,
+          attachment,
           model:
             feature === 'faq-rag' && useWebSearch && !isWebSearchModelSupported(selectedModel)
               ? compatibleWebSearchModels[0] ?? selectedModel
@@ -182,7 +187,11 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
         error instanceof Error && error.message
           ? error.message
           : 'The server encountered an error fulfilling the chat request.'
-      toast.error(message)
+      if (/Invalid request payload/i.test(message) && (fileContext || attachment)) {
+        toast.error('Attachment could not be processed. Try a smaller plain-text file or shorten the content.')
+      } else {
+        toast.error(message)
+      }
     } finally {
       setIsTyping(false)
     }

@@ -62,6 +62,11 @@ export class ChatService {
     feature: BenchmarkFeature,
     userInput: string,
     fileContext?: string,
+    attachment?: {
+      mimeType: string
+      dataBase64: string
+      fileName?: string
+    },
     useWebSearch = false,
   ): Promise<ChatResponse> {
     const promptMaterial = getPromptMaterial(feature)
@@ -74,20 +79,22 @@ export class ChatService {
     }
 
     if (fileContext) {
-      fullInput += `\n\n[ATTACHED FILE CONTEXT]\n${fileContext}`
+      fullInput += `\n\n[ATTACHED FILE CONTEXT]\n${buildAttachmentPromptContext(userInput, fileContext)}`
     }
 
+    const webSearchRequested = shouldEnableGoogleSearch(feature, useWebSearch)
     const response = await this.provider.generateText({
       systemPrompt: promptMaterial.content,
       userInput: fullInput,
       temperature: resolveTemperature(feature),
-      enableGoogleSearch: feature === 'faq-rag' && useWebSearch,
+      enableGoogleSearch: webSearchRequested,
+      attachments: attachment ? [attachment] : undefined,
     })
 
     const structuredData = parseStructuredResponse(feature, response.rawText)
     const hasFallbackReply = response.rawText.includes(FAQ_FALLBACK_REPLY)
     const webSources = hasFallbackReply ? undefined : response.webSources
-    const webSearchAttempted = feature === 'faq-rag' && useWebSearch
+    const webSearchAttempted = webSearchRequested
     const webSourceCount = webSources?.length ?? 0
     const shouldHideRetrievedSources =
       (structuredData?.type === 'faq' && structuredData.data.answered_from_context === false) ||
@@ -120,7 +127,7 @@ export class ChatService {
       webSources,
       debug: {
         webSearch: {
-          requested: useWebSearch,
+          requested: webSearchRequested,
           attempted: webSearchAttempted,
           used: webSourceCount > 0,
           sourceCount: webSourceCount,
@@ -132,6 +139,10 @@ export class ChatService {
 }
 
 const MAX_ATTACHMENT_RETRIEVAL_CHARS = 2500
+const MAX_ATTACHMENT_PROMPT_CHARS = 80_000
+const MAX_ATTACHMENT_EDGE_CHARS = 20_000
+const MAX_ATTACHMENT_KEYWORD_SNIPPETS = 6
+const ATTACHMENT_KEYWORD_RADIUS = 600
 const FAQ_FALLBACK_REPLY =
   "I don't have enough information to answer that from the available policy documents. Please contact your course coordinator directly for guidance."
 
@@ -153,8 +164,86 @@ function buildRetrievalQuery(userInput: string, fileContext?: string): string {
   return `${userInput}\n\n[ATTACHMENT_SNIPPET]\n${truncated}`
 }
 
+function buildAttachmentPromptContext(userInput: string, fileContext: string): string {
+  const normalized = fileContext.trim()
+  if (!normalized) return ''
+  if (normalized.length <= MAX_ATTACHMENT_PROMPT_CHARS) {
+    return normalized
+  }
+
+  const head = normalized.slice(0, MAX_ATTACHMENT_EDGE_CHARS)
+  const tail = normalized.slice(-MAX_ATTACHMENT_EDGE_CHARS)
+  const keywordSnippets = extractKeywordSnippets(userInput, normalized)
+  const snippetSection =
+    keywordSnippets.length > 0
+      ? `\n\n[KEYWORD SNIPPETS]\n${keywordSnippets.join('\n\n---\n\n')}`
+      : ''
+
+  return (
+    `[ATTACHMENT TRUNCATED]\n` +
+    `Original length: ${normalized.length} chars. Included the first ${MAX_ATTACHMENT_EDGE_CHARS} chars, ` +
+    `last ${MAX_ATTACHMENT_EDGE_CHARS} chars, and targeted snippets matching your question.\n\n` +
+    `[FILE START]\n${head}\n\n` +
+    `[FILE END]\n${tail}` +
+    snippetSection
+  )
+}
+
+function extractKeywordSnippets(userInput: string, fileContext: string): string[] {
+  const terms = uniqueQueryTerms(userInput)
+  const snippets: string[] = []
+
+  for (const term of terms) {
+    if (snippets.length >= MAX_ATTACHMENT_KEYWORD_SNIPPETS) break
+    const regex = new RegExp(escapeRegExp(term), 'i')
+    const match = regex.exec(fileContext)
+    if (!match || match.index === undefined) continue
+    const center = match.index
+    const start = Math.max(0, center - ATTACHMENT_KEYWORD_RADIUS)
+    const end = Math.min(fileContext.length, center + term.length + ATTACHMENT_KEYWORD_RADIUS)
+    const snippet = fileContext.slice(start, end).trim()
+    if (!snippet) continue
+    snippets.push(`Keyword: "${term}"\n${snippet}`)
+  }
+
+  return snippets
+}
+
+function uniqueQueryTerms(input: string): string[] {
+  const stopWords = new Set([
+    'the', 'and', 'for', 'that', 'this', 'with', 'from', 'into', 'about', 'what', 'when', 'where',
+    'which', 'your', 'have', 'will', 'would', 'could', 'should', 'please', 'check', 'contract',
+  ])
+  const tokens = input
+    .toLowerCase()
+    .split(/[^a-z0-9]+/)
+    .map((token) => token.trim())
+    .filter((token) => token.length >= 4)
+    .filter((token) => !stopWords.has(token))
+  return Array.from(new Set(tokens)).slice(0, MAX_ATTACHMENT_KEYWORD_SNIPPETS * 2)
+}
+
+function escapeRegExp(value: string): string {
+  return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')
+}
+
 function resolveTemperature(feature: BenchmarkFeature): number {
   return feature === 'faq-rag' ? 0.35 : 0.1
+}
+
+function shouldEnableGoogleSearch(feature: BenchmarkFeature, faqWebSearchToggle: boolean): boolean {
+  const googleSearchGloballyEnabled = process.env.GEMINI_ENABLE_GOOGLE_SEARCH !== 'false'
+  if (!googleSearchGloballyEnabled) {
+    return false
+  }
+
+  if (feature === 'faq-rag') {
+    return faqWebSearchToggle
+  }
+
+  // For contract/job checkers, use web grounding as a secondary verification layer
+  // (company legitimacy, domain context), unless explicitly disabled.
+  return process.env.GEMINI_ENABLE_CHECKER_WEB_SEARCH !== 'false'
 }
 
 function resolveContentType(structuredData: StructuredChatData | undefined, rawText: string): 'plain' | 'markdown' | 'structured' {

@@ -32,7 +32,14 @@ const webSourceSchema = z.object({
 export const chatMessageRequestSchema = z.object({
   feature: benchmarkFeatureSchema,
   userInput: z.string().min(1).openapi({ example: 'Who can apply for the internship?' }),
-  fileContext: z.string().max(200_000).optional(),
+  fileContext: z.string().max(1_000_000).optional(),
+  attachment: z
+    .object({
+      mimeType: z.string().min(1).max(120),
+      dataBase64: z.string().min(1).max(2_000_000),
+      fileName: z.string().min(1).max(260).optional(),
+    })
+    .optional(),
   model: z.string().min(1).max(120).optional(),
   useWebSearch: z.boolean().optional(),
 })

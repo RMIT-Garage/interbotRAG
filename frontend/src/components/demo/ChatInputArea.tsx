@@ -5,21 +5,32 @@ import { Paperclip, Send } from 'lucide-react'
 import { toast } from 'sonner'
 
 interface ChatInputAreaProps {
-  onSend: (message: string, fileContext?: string) => void
+  onSend: (
+    message: string,
+    fileContext?: string,
+    attachment?: { mimeType: string; dataBase64: string; fileName?: string },
+  ) => void
   disabled?: boolean
 }
+
+const MAX_FILE_CONTEXT_CHARS = 900_000
+const MAX_FILE_SIZE_BYTES = 1_000_000
 
 export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
   const [input, setInput] = useState('')
   const [fileContext, setFileContext] = useState<string | undefined>()
+  const [attachment, setAttachment] = useState<
+    { mimeType: string; dataBase64: string; fileName?: string } | undefined
+  >()
   const [fileName, setFileName] = useState<string | undefined>()
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleSend = () => {
-    if (!input.trim() && !fileContext) return
-    onSend(input, fileContext)
+    if (!input.trim() && !fileContext && !attachment) return
+    onSend(input, fileContext, attachment)
     setInput('')
     setFileContext(undefined)
+    setAttachment(undefined)
     setFileName(undefined)
   }
 
@@ -34,20 +45,58 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
     const file = e.target.files?.[0]
     if (!file) return
 
+    if (file.size > MAX_FILE_SIZE_BYTES) {
+      toast.error('Attached file is too large. Please use files under 1MB.')
+      if (fileInputRef.current) fileInputRef.current.value = ''
+      return
+    }
+
     setFileName(file.name)
     const reader = new FileReader()
+    const isTextLike =
+      file.type.startsWith('text/') ||
+      /\.(txt|md|json|csv|xml|yaml|yml|log|rtf)$/i.test(file.name)
+
     reader.onload = (event) => {
-      const text = event.target?.result
-      if (typeof text === 'string') {
-        setFileContext(text)
+      const result = event.target?.result
+      if (typeof result !== 'string') return
+
+      if (isTextLike) {
+        const truncated = result.length > MAX_FILE_CONTEXT_CHARS
+        const normalized = truncated ? result.slice(0, MAX_FILE_CONTEXT_CHARS) : result
+        setFileContext(normalized)
+        setAttachment(undefined)
+        if (truncated) {
+          toast.info(`Attached ${file.name} (trimmed to first ${MAX_FILE_CONTEXT_CHARS.toLocaleString()} chars)`)
+          return
+        }
         toast.success(`Attached ${file.name}`)
+        return
       }
+
+      // Binary documents/images are forwarded as base64 so Gemini can parse multimodal content.
+      const base64 = result.includes(',') ? result.split(',')[1] : undefined
+      if (!base64) {
+        toast.error('Failed to encode attachment')
+        return
+      }
+      setFileContext(undefined)
+      setAttachment({
+        mimeType: file.type || 'application/octet-stream',
+        dataBase64: base64,
+        fileName: file.name,
+      })
+      toast.success(`Attached ${file.name} (${file.type || 'binary'})`)
     }
     reader.onerror = () => {
       toast.error('Failed to read file contents')
       setFileName(undefined)
     }
-    reader.readAsText(file)
+    if (isTextLike) {
+      reader.readAsText(file)
+    } else {
+      reader.readAsDataURL(file)
+    }
   }
 
   return (
@@ -60,6 +109,7 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
             onClick={() => {
               setFileName(undefined)
               setFileContext(undefined)
+              setAttachment(undefined)
             }}
             className="ml-2 hover:text-red-500"
           >
@@ -77,7 +127,7 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
           <Paperclip className="size-5" />
           <input
             type="file"
-            accept=".txt,.md,.json,.csv"
+            accept=".txt,.md,.json,.csv,.pdf,.doc,.docx,.png,.jpg,.jpeg,.webp,.heic"
             className="hidden"
             ref={fileInputRef}
             onChange={handleFileChange}
@@ -96,7 +146,7 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
 
         <button
           type="button"
-          disabled={disabled || (!input.trim() && !fileContext)}
+          disabled={disabled || (!input.trim() && !fileContext && !attachment)}
           onClick={handleSend}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-brand-500 text-white transition-colors hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
         >

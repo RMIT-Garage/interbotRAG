@@ -13,6 +13,7 @@ export interface CheckerModelOutput {
   decision: 'Yes' | 'No'
   confidence: number
   concerns: string[]
+  reasonCodes?: string[]
   summary: string
 }
 
@@ -106,6 +107,7 @@ function Collapsible({
 
 function CheckerCard({ data, messageId }: { data: CheckerModelOutput; messageId: string }) {
   const isCompliant = data.decision === 'Yes'
+  const reasonCodes = Array.isArray(data.reasonCodes) ? data.reasonCodes : []
 
   return (
     <div className="space-y-3">
@@ -170,6 +172,26 @@ function CheckerCard({ data, messageId }: { data: CheckerModelOutput; messageId:
               )
             })}
           </ul>
+        </Collapsible>
+      )}
+
+      {/* Reason codes (machine-friendly) */}
+      {reasonCodes.length > 0 && (
+        <Collapsible
+          label={`Reason Codes (${reasonCodes.length})`}
+          icon={<AlertTriangle className="size-3.5" />}
+          defaultOpen={false}
+        >
+          <div className="flex flex-wrap gap-1.5">
+            {reasonCodes.map((code, i) => (
+              <span
+                key={`${messageId}-reason-${i}`}
+                className="rounded-md border border-zinc-300 bg-zinc-100 px-2 py-1 font-mono text-[11px] text-zinc-700 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-300"
+              >
+                {code}
+              </span>
+            ))}
+          </div>
         </Collapsible>
       )}
 

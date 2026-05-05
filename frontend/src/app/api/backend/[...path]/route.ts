@@ -53,7 +53,14 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
       { status: 500 }
     )
   }
-  const upstreamUrl = `${backendBase}/api/${path.join('/')}`
+  const normalizedBase = backendBase.replace(/\/$/, '')
+  const joinedPath = path.join('/')
+  const candidates = Array.from(
+    new Set([
+      `${normalizedBase}/api/${joinedPath}`,
+      `${normalizedBase}/${joinedPath}`,
+    ]),
+  )
 
   // Forward the original request body and all headers (including Authorization)
   const body = req.method !== 'GET' && req.method !== 'HEAD' ? await req.text() : undefined
@@ -61,17 +68,32 @@ async function proxy(req: NextRequest, { params }: { params: Promise<{ path: str
   // Remove host so the upstream doesn't reject the request
   headers.delete('host')
 
-  let upstreamRes: Response
-  try {
-    upstreamRes = await fetch(upstreamUrl, {
-      method: req.method,
-      headers,
-      body,
-    })
-  } catch (err) {
-    console.error('[backend-proxy] Upstream fetch failed:', err)
+  let upstreamRes: Response | undefined
+  let lastError: unknown
+  for (let i = 0; i < candidates.length; i++) {
+    const upstreamUrl = candidates[i]!
+    try {
+      const res = await fetch(upstreamUrl, {
+        method: req.method,
+        headers,
+        body,
+      })
+      // If route prefix is mismatched, try the next candidate before returning 404.
+      if (res.status === 404 && i < candidates.length - 1) {
+        continue
+      }
+      upstreamRes = res
+      break
+    } catch (err) {
+      lastError = err
+      if (i < candidates.length - 1) continue
+    }
+  }
+
+  if (!upstreamRes) {
+    console.error('[backend-proxy] Upstream fetch failed:', lastError)
     return NextResponse.json(
-      { error: 'Backend unreachable', detail: String(err) },
+      { error: 'Backend unreachable', detail: String(lastError) },
       { status: 502 }
     )
   }

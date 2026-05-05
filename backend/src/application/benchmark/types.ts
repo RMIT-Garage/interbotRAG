@@ -8,12 +8,28 @@ export const benchmarkModeSchema = z.enum(['smoke', 'full'])
 export type BenchmarkMode = z.infer<typeof benchmarkModeSchema>
 
 export const checkerDecisionSchema = z.enum(['Yes', 'No'])
+export const checkerReasonCodeSchema = z.enum([
+  'TECHNICAL_ALIGNMENT_INSUFFICIENT',
+  'MIN_DURATION_OR_HOURS_UNCLEAR',
+  'SUPERVISION_NOT_IDENTIFIABLE',
+  'PAID_OR_FORMAL_STRUCTURE_MISSING',
+  'EMPLOYER_LEGITIMACY_UNVERIFIED',
+  'AWARD_CLASSIFICATION_UNCLEAR',
+  'MINIMUM_HOURS_UNVERIFIED',
+  'IDENTITY_MISMATCH_OR_MISSING',
+  'SUBSTANTIVE_TECHNICAL_WORK_UNVERIFIED',
+  'CONTRACT_VALIDITY_RISK',
+  'MISSING_LINKED_DOCUMENT',
+  'WEB_EVIDENCE_CONFLICT',
+  'INSUFFICIENT_EVIDENCE',
+])
 
 export const checkerModelOutputSchema = z.object({
   scratchpad: z.string(),
   decision: checkerDecisionSchema,
   confidence: z.number().min(0).max(1),
   concerns: z.array(z.string()),
+  reasonCodes: z.array(checkerReasonCodeSchema).default([]),
   summary: z.string(),
 })
 export type CheckerModelOutput = z.infer<typeof checkerModelOutputSchema>

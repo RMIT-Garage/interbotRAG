@@ -79,8 +79,8 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier, apiKeyReposit
 
   app.use(globalLimiter)
 
-  app.use(express.json({ limit: '2mb' }))
-  app.use(express.urlencoded({ extended: true, limit: '2mb' }))
+  app.use(express.json({ limit: '8mb' }))
+  app.use(express.urlencoded({ extended: true, limit: '8mb' }))
 
   app.use('/health', healthRouter)
   app.use('/api/health', healthRouter)

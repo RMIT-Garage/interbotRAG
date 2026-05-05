@@ -8,6 +8,11 @@ export interface GenerateTextRequest {
   userInput: string
   temperature?: number
   enableGoogleSearch?: boolean
+  attachments?: Array<{
+    mimeType: string
+    dataBase64: string
+    fileName?: string
+  }>
 }
 
 export interface WebSource {

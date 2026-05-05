@@ -35,6 +35,14 @@ interface GeminiGenerateContentResponse {
   }
 }
 
+interface GeminiContentPart {
+  text?: string
+  inlineData?: {
+    mimeType: string
+    data: string
+  }
+}
+
 interface GroundingChunk {
   web?: {
     uri?: string
@@ -141,7 +149,7 @@ export class GeminiModelProvider implements ModelProvider {
             contents: [
               {
                 role: 'user',
-                parts: [{ text: request.userInput }],
+                parts: buildUserParts(request.userInput, request.attachments),
               },
             ],
             generationConfig: {
@@ -199,6 +207,30 @@ export class GeminiModelProvider implements ModelProvider {
 
     throw new UpstreamServiceError('Gemini API request retries exhausted')
   }
+}
+
+function buildUserParts(
+  userInput: string,
+  attachments: GenerateTextRequest['attachments'],
+): GeminiContentPart[] {
+  const parts: GeminiContentPart[] = [{ text: userInput }]
+  if (!attachments || attachments.length === 0) {
+    return parts
+  }
+
+  for (const attachment of attachments) {
+    const mimeType = attachment.mimeType?.trim()
+    const data = attachment.dataBase64?.trim()
+    if (!mimeType || !data) continue
+    parts.push({
+      inlineData: {
+        mimeType,
+        data,
+      },
+    })
+  }
+
+  return parts
 }
 
 function mapGroundingSources(groundingChunks?: GroundingChunk[]): WebSource[] {
