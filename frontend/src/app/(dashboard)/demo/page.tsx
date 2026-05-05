@@ -1,22 +1,13 @@
-import { ChatInterface } from '@/components/demo/ChatInterface'
+import { redirect } from 'next/navigation'
 
-const ALLOWED_FEATURES = new Set(['faq-rag', 'contract-checker', 'job-checker'])
-
-type DemoPageProps = {
+type DemoRedirectPageProps = {
   searchParams?: Promise<{
     feature?: string
   }>
 }
 
-export default async function DemoPage({ searchParams }: DemoPageProps) {
+export default async function DemoPage({ searchParams }: DemoRedirectPageProps) {
   const resolvedSearchParams = await searchParams
-  // Default to faq-rag if feature is not provided or malformed
-  const rawFeature = resolvedSearchParams?.feature
-  const feature = rawFeature && ALLOWED_FEATURES.has(rawFeature) ? rawFeature : 'faq-rag'
-
-  return (
-    <div className="h-full w-full">
-      <ChatInterface feature={feature} />
-    </div>
-  )
+  const feature = resolvedSearchParams?.feature
+  redirect(feature ? `/assistant?feature=${encodeURIComponent(feature)}` : '/assistant')
 }

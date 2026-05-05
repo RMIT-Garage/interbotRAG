@@ -18,7 +18,7 @@ export function createAuthMiddleware(tokenVerifier: TokenVerifier) {
     res: Response,
     next: NextFunction,
   ): Promise<void> {
-    if (req.path.startsWith('/chat/')) {
+    if (req.path === '/chat' || req.path.startsWith('/chat/')) {
       ;(req as AuthenticatedRequest).actor = {
         uid: 'demo-user',
         email: undefined,

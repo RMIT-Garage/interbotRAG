@@ -23,5 +23,5 @@ export default async function ProfilePage() {
   //     </div>
   //   </div>
   // )
-  redirect('/demo')
+  redirect('/assistant')
 }

@@ -27,6 +27,10 @@ export interface ChatResponse {
     section: string
     sourceUrl?: string
   }>
+  webSources?: Array<{
+    title: string
+    uri: string
+  }>
 }
 
 export class ChatService {
@@ -38,9 +42,15 @@ export class ChatService {
     this.knowledgeRetriever = options.knowledgeRetriever
   }
 
-  async generateResponse(feature: BenchmarkFeature, userInput: string, fileContext?: string): Promise<ChatResponse> {
+  async generateResponse(
+    feature: BenchmarkFeature,
+    userInput: string,
+    fileContext?: string,
+    useWebSearch = false,
+  ): Promise<ChatResponse> {
     const promptMaterial = getPromptMaterial(feature)
-    const retrievedChunks = await this.knowledgeRetriever.search(feature, userInput)
+    const retrievalQuery = buildRetrievalQuery(userInput, fileContext)
+    const retrievedChunks = await this.knowledgeRetriever.search(feature, retrievalQuery)
 
     let fullInput = userInput
     if (retrievedChunks.length > 0) {
@@ -54,7 +64,8 @@ export class ChatService {
     const response = await this.provider.generateText({
       systemPrompt: promptMaterial.content,
       userInput: fullInput,
-      temperature: 0.1,
+      temperature: resolveTemperature(feature),
+      enableGoogleSearch: feature === 'faq-rag' && useWebSearch,
     })
 
     const structuredData = parseStructuredResponse(feature, response.rawText)
@@ -68,8 +79,33 @@ export class ChatService {
         section: chunk.section,
         sourceUrl: chunk.sourceUrl,
       })),
+      webSources: response.webSources,
     }
   }
+}
+
+const MAX_ATTACHMENT_RETRIEVAL_CHARS = 2500
+
+function buildRetrievalQuery(userInput: string, fileContext?: string): string {
+  if (!fileContext) {
+    return userInput
+  }
+
+  const normalized = fileContext.trim()
+  if (!normalized) {
+    return userInput
+  }
+
+  const truncated =
+    normalized.length > MAX_ATTACHMENT_RETRIEVAL_CHARS
+      ? `${normalized.slice(0, MAX_ATTACHMENT_RETRIEVAL_CHARS)}…`
+      : normalized
+
+  return `${userInput}\n\n[ATTACHMENT_SNIPPET]\n${truncated}`
+}
+
+function resolveTemperature(feature: BenchmarkFeature): number {
+  return feature === 'faq-rag' ? 0.35 : 0.1
 }
 
 function formatRetrievedChunks(chunks: RetrievedKnowledgeChunk[]): string {

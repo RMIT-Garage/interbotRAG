@@ -2,12 +2,18 @@ import { type NextRequest, NextResponse } from 'next/server'
 
 export function proxy(req: NextRequest) {
   const { pathname } = req.nextUrl
-  if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+  if (pathname === '/assistant' || pathname.startsWith('/assistant/')) {
     return NextResponse.next()
   }
 
+  if (pathname === '/demo' || pathname.startsWith('/demo/')) {
+    const url = req.nextUrl.clone()
+    url.pathname = '/assistant'
+    return NextResponse.redirect(url)
+  }
+
   const url = req.nextUrl.clone()
-  url.pathname = '/demo'
+  url.pathname = '/assistant'
   url.search = ''
   return NextResponse.redirect(url)
 }

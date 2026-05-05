@@ -8,14 +8,14 @@ For the lower-level system design, see [ARCHITECTURE.md](ARCHITECTURE.md). For s
 
 The current MVP provides:
 
-- authenticated chat through `POST /api/chat/message`
+- chat through `POST /api/chat/message` (open access for chat features)
 - manual knowledge ingestion through `POST /api/knowledge/documents`
 - knowledge document listing through `GET /api/knowledge/documents`
 - admin-gated knowledge management using `actor.claims.admin === true`
 - deterministic text chunking in `backend/src/application/knowledge/chunkText.ts`
 - embedding generation through `backend/src/infrastructure/ai/geminiEmbeddingProvider.ts`
 - Supabase `pgvector` storage and retrieval using `backend/supabase/schema.sql`
-- grounded chat responses with `sources` rendered in the demo UI
+- grounded chat responses with `sources` and optional `webSources` rendered in the assistant UI
 - a dashboard knowledge page at `frontend/src/app/(dashboard)/knowledge/page.tsx`
 
 ## What is not implemented yet
@@ -33,12 +33,13 @@ The current ingestion path is **manual text entry** only.
 
 ## Frontend surfaces
 
-### Demo chat
-- Route: `/demo?feature=faq-rag`
+### Assistant chat
+- Route: `/assistant?feature=faq-rag`
 - UI file: `frontend/src/components/demo/ChatInterface.tsx`
 - Behavior:
-  - sends an authenticated request to `/api/backend/chat/message`
-  - renders assistant text plus returned source citations
+  - sends chat requests to `/api/backend/chat/message`
+  - supports optional file attachments (`fileContext`) and optional web search (`useWebSearch`)
+  - renders assistant text plus returned knowledge and web citations
 
 ### Knowledge management page
 - Route: `/knowledge`
@@ -68,19 +69,27 @@ Request body:
 {
   "feature": "faq-rag",
   "userInput": "Who can apply for the internship?",
-  "fileContext": "optional attached text"
+  "fileContext": "optional attached text",
+  "useWebSearch": true
 }
 ```
 
 Notes:
 - `feature` currently accepts the benchmark feature enum values.
 - `fileContext` is optional and treated as supplemental context.
+- `useWebSearch` is optional and only applies to `faq-rag` requests.
 
 Response body:
 
 ```json
 {
   "reply": "Students enrolled full-time are eligible...",
+  "webSources": [
+    {
+      "title": "University handbook",
+      "uri": "https://example.com/handbook"
+    }
+  ],
   "sources": [
     {
       "title": "Internship FAQ",
@@ -139,13 +148,13 @@ Behavior:
 
 ## 2. Chat retrieval
 
-1. User opens `/demo?feature=faq-rag`
+1. User opens `/assistant?feature=faq-rag`
 2. Frontend posts a chat message to `/api/backend/chat/message`
-3. Backend embeds the query
+3. Backend builds a retrieval query from `userInput` plus an attachment snippet (when attached), then embeds it
 4. Supabase RPC `match_knowledge_chunks` returns the top matching chunks for the selected feature
-5. `ChatService` appends the retrieved chunks to the model input
-6. Gemini generates the final answer
-7. Backend returns `{ reply, sources }`
+5. `ChatService` appends retrieved chunks and attachment context to the model input
+6. Gemini generates the final answer and can optionally use Google Search grounding
+7. Backend returns `{ reply, sources, webSources }`
 8. Frontend renders the reply and citations
 
 ## Data model
@@ -189,7 +198,7 @@ Behavior:
 
 ## Auth and authorization
 
-All backend API routes are protected by Firebase token verification.
+Knowledge-management backend routes are protected by Firebase token verification.
 
 Knowledge management is additionally restricted to users whose decoded Firebase token contains:
 
@@ -197,7 +206,7 @@ Knowledge management is additionally restricted to users whose decoded Firebase 
 { "admin": true }
 ```
 
-The backend checks this claim before allowing access to the knowledge management endpoints.
+Chat routes remain open-access for this deployment and assign a demo actor.
 
 ## Dependencies required for full MVP behavior
 

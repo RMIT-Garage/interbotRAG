@@ -41,16 +41,16 @@ This repo now includes a working Firebase + Supabase hybrid RAG MVP for the `faq
   - `backend/src/infrastructure/retrieval/supabaseKnowledgeRetriever.ts` embeds the query and calls the `match_knowledge_chunks` RPC in Supabase
   - `backend/supabase/schema.sql` defines the `knowledge_documents` and `knowledge_chunks` tables and the vector-search function
 - **Grounded chat responses with sources**
-  - `backend/src/api/routes/chat.ts` returns `{ reply, sources }`
-  - `frontend/src/components/demo/ChatInterface.tsx` renders the source list under assistant replies
+  - `backend/src/api/routes/chat.ts` returns `{ reply, sources, webSources }`
+  - `frontend/src/components/demo/ChatInterface.tsx` renders both knowledge-base and web source lists
 
 ### End-to-end runtime flow
 
 1. An admin signs in with Firebase Auth and opens `/knowledge`.
 2. The frontend sends a bearer token through the Next.js proxy route at `frontend/src/app/api/backend/[...path]/route.ts`.
 3. `POST /api/knowledge/documents` validates the payload, checks `actor.claims.admin`, chunks the content, generates embeddings with Gemini, and writes documents/chunks into Supabase.
-4. A signed-in user opens `/demo?feature=faq-rag` and sends a question.
-5. `POST /api/chat/message` embeds the query, retrieves the top matching chunks from Supabase, appends them to the model input, and generates a reply.
+4. A user opens `/assistant?feature=faq-rag` and sends a question.
+5. `POST /api/chat/message` embeds the query (plus an attachment snippet when present), retrieves top chunks from Supabase, optionally uses Gemini Google Search grounding, and generates a reply.
 6. The backend returns the answer together with source metadata, and the frontend renders both.
 
 For a feature-level snapshot, see [docs/RAG-MVP.md](docs/RAG-MVP.md). For the operational setup sequence, see [docs/RAG-SETUP-PLAYBOOK.md](docs/RAG-SETUP-PLAYBOOK.md).
@@ -59,7 +59,7 @@ For a feature-level snapshot, see [docs/RAG-MVP.md](docs/RAG-MVP.md). For the op
 
 The app can still boot without retrieval, but the **full RAG MVP requires all of the following**:
 
-- Firebase Auth configured for login and protected API access
+- `GEMINI_ENABLE_GOOGLE_SEARCH` (optional toggle; defaults enabled unless set to `false`)
 - `SUPABASE_URL`
 - `SUPABASE_SERVICE_ROLE_KEY`
 - `GEMINI_API_KEY`

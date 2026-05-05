@@ -16,5 +16,5 @@ export default function SettingsPage() {
   //     </div>
   //   </div>
   // )
-  redirect('/demo')
+  redirect('/assistant')
 }

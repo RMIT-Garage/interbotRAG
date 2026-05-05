@@ -52,9 +52,9 @@ export function createApp({ tokenVerifier = firebaseTokenVerifier }: AppOptions 
   // Rate limiting — applied before any route logic
   app.use(globalLimiter)
 
-  // Body parsers — 1mb limit to prevent memory exhaustion attacks
-  app.use(express.json({ limit: '1mb' }))
-  app.use(express.urlencoded({ extended: true, limit: '1mb' }))
+  // Body parsers — allow larger chat attachments while keeping bounded payloads.
+  app.use(express.json({ limit: '2mb' }))
+  app.use(express.urlencoded({ extended: true, limit: '2mb' }))
 
   // Public routes (no auth)
   app.use('/api/health', healthRouter)

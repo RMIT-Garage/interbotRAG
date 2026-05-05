@@ -19,8 +19,9 @@ function createChatService(model?: string): ChatService {
 const chatMessageSchema = z.object({
   feature: benchmarkFeatureSchema,
   userInput: z.string().min(1),
-  fileContext: z.string().optional(),
+  fileContext: z.string().max(200_000).optional(),
   model: z.string().min(1).max(120).optional(),
+  useWebSearch: z.boolean().optional(),
 })
 
 chatRouter.post('/message', async (req: Request, res: Response, next: NextFunction) => {
@@ -30,11 +31,13 @@ chatRouter.post('/message', async (req: Request, res: Response, next: NextFuncti
       throw new ValidationError('Invalid request payload')
     }
 
-    const { feature, userInput, fileContext, model } = parsed.data
+    const { feature, userInput, fileContext, model, useWebSearch } = parsed.data
+    const webSearchEnabled = process.env.GEMINI_ENABLE_GOOGLE_SEARCH !== 'false'
     const response = await createChatService(normalizeModelName(model)).generateResponse(
       feature,
       userInput,
       fileContext,
+      webSearchEnabled && (useWebSearch ?? false),
     )
 
     res.json(response)

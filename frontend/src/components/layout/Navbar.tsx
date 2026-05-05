@@ -4,9 +4,9 @@ import Link from 'next/link'
 import { Menu } from 'lucide-react'
 
 const mobileLinks = [
-  { href: '/demo?feature=faq-rag', label: 'FAQ Assistant' },
-  { href: '/demo?feature=contract-checker', label: 'Contract Checker' },
-  { href: '/demo?feature=job-checker', label: 'Job Checker' },
+  { href: '/assistant?feature=faq-rag', label: 'FAQ Assistant' },
+  { href: '/assistant?feature=contract-checker', label: 'Contract Checker' },
+  { href: '/assistant?feature=job-checker', label: 'Job Checker' },
 ]
 
 export function Navbar() {
@@ -34,7 +34,7 @@ export function Navbar() {
           <p className="hidden text-xs text-zinc-500 sm:block">Student and coordinator console</p>
         </div>
       </div>
-      <span className="hidden rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 md:block">Demo mode</span>
+      <span className="hidden rounded-full bg-zinc-100 px-2.5 py-1 text-xs text-zinc-600 md:block">Live mode</span>
     </header>
   )
 }

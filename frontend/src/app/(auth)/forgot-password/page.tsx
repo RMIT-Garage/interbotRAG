@@ -9,8 +9,8 @@ export default function ForgotPasswordPage() {
       </div>
       <p className="text-center text-sm text-zinc-500">
         Continue directly to the workspace:{' '}
-        <Link href="/demo" className="font-medium text-brand-500 hover:text-brand-600 hover:underline">
-          Launch demo
+        <Link href="/assistant" className="font-medium text-brand-500 hover:text-brand-600 hover:underline">
+          Launch assistant
         </Link>
       </p>
     </div>

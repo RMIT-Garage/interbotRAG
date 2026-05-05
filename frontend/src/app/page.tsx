@@ -50,13 +50,13 @@ export default function LandingPage() {
             </div>
             <div className="w-full max-w-sm rounded-2xl border bg-background p-5">
               <p className="text-sm font-medium text-zinc-700">Start with your workspace</p>
-              <p className="mt-1 text-sm text-zinc-500">Use the live demo with chat and checker experiences.</p>
+              <p className="mt-1 text-sm text-zinc-500">Use the live assistant with chat and checker experiences.</p>
               <div className="mt-5 flex flex-col gap-3">
                 <Link
-                  href="/demo"
+                  href="/assistant"
                   className="inline-flex items-center justify-center rounded-xl bg-brand-500 px-4 py-2.5 text-sm font-semibold text-white hover:bg-brand-600"
                 >
-                  Launch demo
+                  Launch assistant
                 </Link>
               </div>
             </div>

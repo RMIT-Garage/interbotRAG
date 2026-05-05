@@ -7,11 +7,18 @@ export interface GenerateTextRequest {
   systemPrompt: string
   userInput: string
   temperature?: number
+  enableGoogleSearch?: boolean
+}
+
+export interface WebSource {
+  title: string
+  uri: string
 }
 
 export interface GenerateTextResponse {
   rawText: string
   usage?: ModelUsage
+  webSources?: WebSource[]
 }
 
 export interface ModelProvider {

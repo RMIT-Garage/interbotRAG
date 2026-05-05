@@ -1,7 +1,7 @@
 'use client'
 
 import { useState } from 'react'
-import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, XCircle, BookOpen, Lightbulb } from 'lucide-react'
+import { ChevronDown, ChevronRight, AlertTriangle, CheckCircle2, XCircle, BookOpen, Lightbulb, Globe } from 'lucide-react'
 
 // ---------------------------------------------------------------------------
 // Shared types (mirror of backend StructuredChatData)
@@ -32,10 +32,16 @@ export interface RagSource {
   sourceUrl?: string
 }
 
+export interface WebSource {
+  title: string
+  uri: string
+}
+
 interface AssistantMessageProps {
   content: string
   structuredData?: StructuredChatData
   sources?: RagSource[]
+  webSources?: WebSource[]
   messageId: string
 }
 
@@ -265,12 +271,42 @@ function RagSourceList({ sources, messageId }: { sources: RagSource[]; messageId
   )
 }
 
+function WebSourceList({ sources, messageId }: { sources: WebSource[]; messageId: string }) {
+  return (
+    <Collapsible
+      label={`Web Sources (${sources.length})`}
+      icon={<Globe className="size-3.5" />}
+      defaultOpen={false}
+    >
+      <ul className="space-y-1.5">
+        {sources.map((source, index) => (
+          <li
+            key={`${messageId}-web-${index}`}
+            className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
+          >
+            <p className="font-medium text-zinc-700 dark:text-zinc-200">{source.title}</p>
+            <a
+              href={source.uri}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-block text-brand-600 underline dark:text-brand-400"
+            >
+              {source.uri}
+            </a>
+          </li>
+        ))}
+      </ul>
+    </Collapsible>
+  )
+}
+
 // ---------------------------------------------------------------------------
 // Main export
 // ---------------------------------------------------------------------------
 
-export function AssistantMessage({ content, structuredData, sources, messageId }: AssistantMessageProps) {
+export function AssistantMessage({ content, structuredData, sources, webSources, messageId }: AssistantMessageProps) {
   const hasSources = sources && sources.length > 0
+  const hasWebSources = webSources && webSources.length > 0
 
   // If we have structured data, render the rich UI
   if (structuredData) {
@@ -285,6 +321,7 @@ export function AssistantMessage({ content, structuredData, sources, messageId }
         {hasSources && (
           <RagSourceList sources={sources} messageId={messageId} />
         )}
+        {hasWebSources && <WebSourceList sources={webSources} messageId={messageId} />}
       </div>
     )
   }
@@ -296,6 +333,7 @@ export function AssistantMessage({ content, structuredData, sources, messageId }
       {hasSources && (
         <RagSourceList sources={sources} messageId={messageId} />
       )}
+      {hasWebSources && <WebSourceList sources={webSources} messageId={messageId} />}
     </div>
   )
 }

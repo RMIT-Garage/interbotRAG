@@ -17,7 +17,7 @@ Output rules:
 - Return valid JSON only. No markdown. No extra keys.
 - Use this exact schema:
 {
-  "scratchpad": "six short lines, one per RULE_1..RULE_6 with PASS/FAIL and reason",
+  "scratchpad": "exactly six lines, one per RULE_1..RULE_6 with PASS/FAIL, explicit evidence span, and reason",
   "decision": "Yes" | "No",
   "confidence": <0.0-1.0>,
   "concerns": ["..."],
@@ -34,3 +34,8 @@ Concern formatting:
 Calibration:
 - confidence >= 0.9 only when evidence is explicit and unambiguous.
 - confidence <= 0.6 when text is incomplete or contradictory.
+
+Scratchpad requirements:
+- Always include all six rule lines in order (RULE_1 through RULE_6), even when evidence is missing.
+- Use this format per line:
+  "RULE_X_...: PASS|FAIL | Evidence: <short quoted phrase or 'missing'> | Reason: <brief rationale>"

@@ -7,7 +7,7 @@ export default function KnowledgePage() {
   const router = useRouter()
 
   useEffect(() => {
-    router.replace('/demo')
+    router.replace('/assistant')
   }, [router])
 
   // Knowledge page is intentionally disabled for now.

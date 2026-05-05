@@ -104,7 +104,7 @@ export function ChatInputArea({ onSend, disabled }: ChatInputAreaProps) {
         </button>
       </div>
       <div className="mt-1.5 text-center text-[10px] text-zinc-400">
-        Demo UI may take a few seconds to respond. Press Shift-Enter for new line.
+        Responses may take a few seconds. Press Shift-Enter for a new line.
       </div>
     </div>
   )

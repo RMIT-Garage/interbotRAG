@@ -8,10 +8,10 @@ export default function LoginPage() {
         <p className="text-sm text-zinc-500">This demo is now open-access. You can launch the workspace directly.</p>
       </div>
       <Link
-        href="/demo"
+        href="/assistant"
         className="inline-flex w-full items-center justify-center rounded-xl bg-brand-500 px-4 py-3 text-sm font-semibold text-white hover:bg-brand-600"
       >
-        Launch demo
+        Launch assistant
       </Link>
     </div>
   )

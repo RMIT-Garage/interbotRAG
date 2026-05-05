@@ -25,5 +25,5 @@ export default async function DashboardPage() {
   //     </div>
   //   </div>
   // )
-  redirect('/demo')
+  redirect('/assistant')
 }

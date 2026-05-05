@@ -1,9 +1,9 @@
 'use client'
 
 import { useEffect, useRef, useState } from 'react'
-import { Sparkles } from 'lucide-react'
+import { Globe, Sparkles } from 'lucide-react'
 import { ChatInputArea } from './ChatInputArea'
-import { AssistantMessage, type StructuredChatData, type RagSource } from './AssistantMessage'
+import { AssistantMessage, type StructuredChatData, type RagSource, type WebSource } from './AssistantMessage'
 import { toast } from 'sonner'
 
 export type Message = {
@@ -13,6 +13,7 @@ export type Message = {
   fileAttached?: boolean
   structuredData?: StructuredChatData
   sources?: RagSource[]
+  webSources?: WebSource[]
 }
 
 interface ChatInterfaceProps {
@@ -23,7 +24,8 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
   const [messages, setMessages] = useState<Message[]>([])
   const [isTyping, setIsTyping] = useState(false)
   const [availableModels, setAvailableModels] = useState<string[]>([])
-  const [selectedModel, setSelectedModel] = useState<string>('gemini-flash-lite-latest')
+  const [selectedModel, setSelectedModel] = useState<string>('gemini-2.5-flash')
+  const [useWebSearch, setUseWebSearch] = useState<boolean>(feature === 'faq-rag')
   const scrollRef = useRef<HTMLDivElement>(null)
 
   useEffect(() => {
@@ -35,6 +37,10 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
 
   useEffect(() => {
     setMessages([])
+  }, [feature])
+
+  useEffect(() => {
+    setUseWebSearch(feature === 'faq-rag')
   }, [feature])
 
   useEffect(() => {
@@ -57,8 +63,8 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
         if (!active || models.length === 0) return
         setAvailableModels(models)
         if (!models.includes(selectedModel)) {
-          const fallback = models.includes('gemini-flash-lite-latest')
-            ? 'gemini-flash-lite-latest'
+          const fallback = models.includes('gemini-2.5-flash')
+            ? 'gemini-2.5-flash'
             : models[0]!
           setSelectedModel(fallback)
           if (typeof window !== 'undefined') window.localStorage.setItem('chatModel', fallback)
@@ -98,6 +104,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
           userInput: messageText || '[File uploaded]',
           fileContext,
           model: selectedModel,
+          useWebSearch: feature === 'faq-rag' ? useWebSearch : false,
         }),
       })
 
@@ -120,6 +127,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
         content: data.reply || '(No response text)',
         structuredData: data.structuredData ?? undefined,
         sources: Array.isArray(data.sources) ? data.sources : undefined,
+        webSources: Array.isArray(data.webSources) ? data.webSources : undefined,
       }
 
       setMessages((prev) => [...prev, assistantMsg])
@@ -138,8 +146,8 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
   let emptyTitle = ''
   if (feature === 'contract-checker') emptyTitle = 'Contract Checker'
   else if (feature === 'job-checker') emptyTitle = 'Job Checker'
-  else if (feature === 'faq-rag') emptyTitle = 'FAQ Chatbot'
-  else emptyTitle = 'Demo Bot'
+  else if (feature === 'faq-rag') emptyTitle = 'FAQ Assistant'
+  else emptyTitle = 'Assistant'
 
   const quickPrompts: Record<string, string[]> = {
     'faq-rag': [
@@ -163,7 +171,19 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
   return (
     <div className="flex h-full flex-col bg-background">
       <div className="flex-1 overflow-y-auto p-3 sm:p-4 md:p-5" ref={scrollRef}>
-        <div className="mx-auto mb-3 flex w-full max-w-4xl justify-end">
+        <div className="mx-auto mb-3 flex w-full max-w-4xl flex-wrap justify-end gap-2">
+          {feature === 'faq-rag' ? (
+            <label className="inline-flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 text-xs text-zinc-600 shadow-sm">
+              <Globe className="size-3.5 text-zinc-500" />
+              Search the web
+              <input
+                type="checkbox"
+                checked={useWebSearch}
+                onChange={(e) => setUseWebSearch(e.target.checked)}
+                className="h-4 w-4 accent-brand-500"
+              />
+            </label>
+          ) : null}
           <div className="inline-flex items-center gap-2 rounded-xl border bg-surface px-2.5 py-1.5 shadow-sm">
             <div className="flex items-center gap-1.5 rounded-lg bg-brand-50 px-2 py-1 text-[11px] font-semibold uppercase tracking-wide text-brand-900">
               <Sparkles className="size-3" />
@@ -199,7 +219,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
               <div>
                 <h2 className="text-xl font-semibold tracking-tight text-zinc-900 dark:text-zinc-100">{emptyTitle}</h2>
                 <p className="mt-1 max-w-2xl text-sm text-zinc-500">
-              Ask a question, upload context, or test a checker flow. Responses prioritize grounded, policy-aware guidance.
+                  Ask a question, attach context, or run a checker flow. Responses prioritize grounded, policy-aware guidance.
                 </p>
               </div>
             </div>
@@ -240,6 +260,7 @@ export function ChatInterface({ feature }: ChatInterfaceProps) {
                       content={msg.content}
                       structuredData={msg.structuredData}
                       sources={msg.sources}
+                      webSources={msg.webSources}
                     />
                   </div>
                 )}

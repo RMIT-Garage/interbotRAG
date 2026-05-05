@@ -3,6 +3,7 @@ import type {
   GenerateTextRequest,
   GenerateTextResponse,
   ModelProvider,
+  WebSource,
 } from '../../application/ports/modelProvider'
 
 interface GeminiProviderOptions {
@@ -19,6 +20,14 @@ interface GeminiGenerateContentResponse {
     content?: {
       parts?: Array<{ text?: string }>
     }
+    groundingMetadata?: {
+      groundingChunks?: Array<{
+        web?: {
+          uri?: string
+          title?: string
+        }
+      }>
+    }
   }>
   usageMetadata?: {
     promptTokenCount?: number
@@ -26,8 +35,15 @@ interface GeminiGenerateContentResponse {
   }
 }
 
+interface GroundingChunk {
+  web?: {
+    uri?: string
+    title?: string
+  }
+}
+
 const DEFAULT_ENDPOINT = 'https://generativelanguage.googleapis.com/v1beta'
-const DEFAULT_MODEL = 'gemini-2.0-flash-lite'
+const DEFAULT_MODEL = 'gemini-2.5-flash'
 const DEFAULT_MAX_RETRIES = 4
 const DEFAULT_BASE_RETRY_DELAY_MS = 1500
 const DEFAULT_MAX_RETRY_DELAY_MS = 60000
@@ -131,6 +147,7 @@ export class GeminiModelProvider implements ModelProvider {
             generationConfig: {
               temperature: request.temperature ?? 0,
             },
+            ...(request.enableGoogleSearch ? { tools: [{ googleSearch: {} }] } : {}),
           }),
         },
       )
@@ -152,13 +169,14 @@ export class GeminiModelProvider implements ModelProvider {
       }
 
       const payload = (await response.json()) as GeminiGenerateContentResponse
-      const rawText =
-        payload.candidates?.[0]?.content?.parts?.map((part) => part.text ?? '').join('') ?? ''
+      const primaryCandidate = payload.candidates?.[0]
+      const rawText = primaryCandidate?.content?.parts?.map((part) => part.text ?? '').join('') ?? ''
 
       if (!rawText) {
         throw new ValidationError('Gemini returned empty content')
       }
 
+      const webSources = mapGroundingSources(primaryCandidate?.groundingMetadata?.groundingChunks)
       const usage = payload.usageMetadata
         ? {
             inputTokens: payload.usageMetadata.promptTokenCount,
@@ -169,9 +187,30 @@ export class GeminiModelProvider implements ModelProvider {
       return {
         rawText,
         usage,
+        webSources: webSources.length > 0 ? webSources : undefined,
       }
     }
 
     throw new ValidationError('Gemini API request retries exhausted')
   }
+}
+
+function mapGroundingSources(groundingChunks?: GroundingChunk[]): WebSource[] {
+  if (!Array.isArray(groundingChunks)) {
+    return []
+  }
+
+  const uniqueSources = new Map<string, WebSource>()
+  for (const chunk of groundingChunks) {
+    const title = chunk?.web?.title?.trim()
+    const uri = chunk?.web?.uri?.trim()
+    if (!title || !uri) {
+      continue
+    }
+    if (!uniqueSources.has(uri)) {
+      uniqueSources.set(uri, { title, uri })
+    }
+  }
+
+  return Array.from(uniqueSources.values())
 }

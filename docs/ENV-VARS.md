@@ -23,9 +23,10 @@
 | `NODE_ENV` | backend | No | No | `development` or `production` |
 | `PORT` | backend | No | No | Local port for the Express server |
 | `GEMINI_API_KEY` | backend | **Yes** | No | API key for live benchmark runs against Gemini |
-| `GEMINI_MODEL` | backend | No | No | Gemini model for benchmark runs and chat generation (default: `gemini-2.0-flash-lite`) |
+| `GEMINI_MODEL` | backend | No | No | Gemini model for benchmark runs and chat generation (default: `gemini-2.5-flash`) |
 | `GEMINI_EMBEDDING_MODEL` | backend | No | No | Gemini embedding model for knowledge ingestion and retrieval (default: `text-embedding-004`) |
 | `GEMINI_ENDPOINT` | backend | No | No | Gemini API endpoint override (default Google Generative Language API) |
+| `GEMINI_ENABLE_GOOGLE_SEARCH` | backend | No | No | Set `false` to disable Gemini Google Search grounding for chat requests |
 | `BENCHMARK_PRICE_INPUT_PER_1K_USD` | backend | No | No | Input token price used for benchmark cost metrics |
 | `BENCHMARK_PRICE_OUTPUT_PER_1K_USD` | backend | No | No | Output token price used for benchmark cost metrics |
 | `BENCHMARK_REQUEST_DELAY_MS` | backend | No | No | Delay between benchmark calls to reduce burst rate-limits |
@@ -35,6 +36,7 @@
 | `SUPABASE_URL` | backend | No | No | Supabase project URL for the knowledge retrieval adapter |
 | `SUPABASE_ANON_KEY` | backend | No | No | Optional low-privilege Supabase key for future read-only clients |
 | `SUPABASE_SERVICE_ROLE_KEY` | backend | **Yes** | No | Service role key used by the backend retrieval adapter |
+| `ALLOW_UNAUTHENTICATED_CHAT` | backend | No | No | Set `true` to allow demo-style bearer `no-token` requests on non-chat routes |
 | `STITCH_API_KEY` | root | **Yes** | No | Google Stitch API key (for Claude Code MCP) |
 
 ## Generating the Service Account Key (Base64)

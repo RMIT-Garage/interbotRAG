@@ -5,9 +5,9 @@ import { usePathname, useSearchParams } from 'next/navigation'
 import { Bot, BriefcaseBusiness, FileCheck } from 'lucide-react'
 
 const navItems = [
-  { href: '/demo?feature=faq-rag', label: 'FAQ Assistant', icon: Bot, match: 'faq-rag' },
-  { href: '/demo?feature=contract-checker', label: 'Contract Checker', icon: FileCheck, match: 'contract-checker' },
-  { href: '/demo?feature=job-checker', label: 'Job Checker', icon: BriefcaseBusiness, match: 'job-checker' },
+  { href: '/assistant?feature=faq-rag', label: 'FAQ Assistant', icon: Bot, match: 'faq-rag' },
+  { href: '/assistant?feature=contract-checker', label: 'Contract Checker', icon: FileCheck, match: 'contract-checker' },
+  { href: '/assistant?feature=job-checker', label: 'Job Checker', icon: BriefcaseBusiness, match: 'job-checker' },
 ]
 
 export function Sidebar() {
@@ -27,7 +27,7 @@ export function Sidebar() {
         {navItems.map(({ href, label, icon: Icon, match }) => {
           const isActive =
             pathname === match ||
-            (pathname === '/demo' && searchParams.get('feature') === match)
+            (pathname === '/assistant' && searchParams.get('feature') === match)
 
           return (
             <Link
@@ -47,7 +47,7 @@ export function Sidebar() {
       </nav>
       <div className="m-3 rounded-xl border bg-background p-3">
         <p className="text-xs font-semibold text-zinc-700 dark:text-zinc-200">Tip</p>
-        <p className="mt-1 text-xs text-zinc-500">Use the feature demos to compare model behavior with grounded sources.</p>
+        <p className="mt-1 text-xs text-zinc-500">Use each assistant mode to compare grounded responses across features.</p>
       </div>
     </aside>
   )
