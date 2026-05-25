@@ -30,6 +30,10 @@ vi.mock('../../../src/infrastructure/retrieval/supabaseKnowledgeRepository', () 
         },
       ]
     }
+
+    async deleteDocumentsByFeature() {
+      return 0
+    }
   },
 }))
 

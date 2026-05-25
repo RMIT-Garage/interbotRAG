@@ -33,6 +33,7 @@ export interface ChatResponse {
     title: string
     section: string
     sourceUrl?: string
+    excerpt?: string
   }>
   webSources?: Array<{
     title: string
@@ -123,6 +124,7 @@ export class ChatService {
             title: chunk.title,
             section: chunk.section,
             sourceUrl: chunk.sourceUrl,
+            excerpt: truncateSourceExcerpt(chunk.text),
           })),
       webSources,
       debug: {
@@ -145,6 +147,16 @@ const MAX_ATTACHMENT_KEYWORD_SNIPPETS = 6
 const ATTACHMENT_KEYWORD_RADIUS = 600
 const FAQ_FALLBACK_REPLY =
   "I don't have enough information to answer that from the available policy documents. Please contact your course coordinator directly for guidance."
+
+const SOURCE_EXCERPT_MAX_CHARS = 200
+
+function truncateSourceExcerpt(text: string): string {
+  const normalized = text.trim().replace(/\s+/g, ' ')
+  if (normalized.length <= SOURCE_EXCERPT_MAX_CHARS) {
+    return normalized
+  }
+  return `${normalized.slice(0, SOURCE_EXCERPT_MAX_CHARS)}…`
+}
 
 function buildRetrievalQuery(userInput: string, fileContext?: string): string {
   if (!fileContext) {

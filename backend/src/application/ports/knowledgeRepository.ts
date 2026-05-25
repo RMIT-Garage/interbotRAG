@@ -31,4 +31,5 @@ export interface KnowledgeRepository {
   createDocument(input: CreateKnowledgeDocumentInput): Promise<KnowledgeDocumentRecord>
   createChunks(documentId: string, chunks: KnowledgeChunkInput[]): Promise<void>
   listDocuments(feature?: string): Promise<KnowledgeDocumentRecord[]>
+  deleteDocumentsByFeature(feature: string): Promise<number>
 }

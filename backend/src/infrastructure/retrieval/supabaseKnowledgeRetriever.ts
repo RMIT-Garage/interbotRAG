@@ -32,7 +32,7 @@ export class SupabaseKnowledgeRetriever implements KnowledgeRetriever {
     const supabase = getSupabaseClient()
     const { data, error } = await supabase.rpc('match_knowledge_chunks', {
       filter_feature: feature,
-      match_count: 5,
+      match_count: 8,
       query_embedding: embedding,
     })
 

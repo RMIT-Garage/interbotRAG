@@ -78,31 +78,34 @@ If you are using emulators, follow the existing local setup in the project READM
 
 If you get a 403 response from the knowledge API, the admin claim is missing or not reflected in the current token.
 
-## 6. Seed the first knowledge document
+## 6. Seed domain knowledge (recommended)
 
-Use the form on `/knowledge` and submit a small manual record.
+Use the one-time CLI pipeline (no admin UI required). Ensure `backend/.env` has `SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, and `GEMINI_API_KEY`.
 
-Suggested first seed:
+### Optional: scrape public RMIT pages
 
-- Feature: `faq-rag`
-- Title: `Internship FAQ`
-- Section: `Eligibility`
-- Source URL: optional
-- Content: a few sentences that answer a likely user question
+```bash
+pnpm --filter backend scrape:rmit-pages
+```
 
-What should happen:
-- the frontend posts to `/api/backend/knowledge/documents`
-- the backend validates the payload
-- the backend chunks the text and generates embeddings
-- the document appears in the list on the page
+Review extracted text under `backend/data/scraped/` before ingesting.
+
+### Ingest manifest (FAQ sections, coordinators, scraped pages)
+
+```bash
+pnpm --filter backend ingest:knowledge -- --replace-feature faq-rag
+```
+
+This reads `backend/data/knowledge-manifest.json`, splits `faq-internship-students-cleaned.txt` by section, ingests coordinator contacts (Alessio Bonti, Golnoush Abaei), and includes scraped files when present. `--replace-feature` deletes existing `faq-rag` rows first.
+
+Manual API ingest (`POST /api/knowledge/documents`) remains available for admins; the `/knowledge` dashboard page is currently disabled.
 
 ## 7. Verify retrieval in chat
 
-1. Open `/demo?feature=faq-rag`
-2. Ask a question directly answerable from the seeded content
-3. Confirm the response includes:
-   - a grounded answer
-   - a `Sources` section in the chat UI
+1. Open `/assistant?feature=faq-rag`
+2. Ask: **Who is my course coordinator?** — expect names, emails, and clickable sources
+3. Ask: **How long must the internship be?** — expect FAQ content with source excerpts and links
+4. Confirm the response includes an expanded **Sources** panel (open by default) with excerpts and **Open source** links
 
 If the answer appears but no sources are shown, retrieval is not being used successfully yet.
 
@@ -110,11 +113,10 @@ If the answer appears but no sources are shown, retrieval is not being used succ
 
 Use this checklist after setup:
 
-- [ ] `/knowledge` loads for the admin user
-- [ ] `POST /api/knowledge/documents` returns success
-- [ ] the knowledge document list refreshes with the new entry
-- [ ] `/demo?feature=faq-rag` returns an answer
-- [ ] the chat response shows at least one source
+- [ ] `pnpm --filter backend ingest:knowledge -- --replace-feature faq-rag` completes without errors
+- [ ] `/assistant?feature=faq-rag` returns an answer with HTTPS `sourceUrl` values (not `local://`)
+- [ ] coordinator questions mention Alessio Bonti and Golnoush Abaei with emails
+- [ ] the chat UI shows source excerpts and clickable links
 - [ ] an unrelated question does not crash the chat flow
 
 ## Troubleshooting

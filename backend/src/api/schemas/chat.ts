@@ -21,6 +21,7 @@ const chatSourceSchema = z.object({
   title: z.string(),
   section: z.string(),
   sourceUrl: z.string().optional(),
+  excerpt: z.string().optional(),
 })
 
 const webSourceSchema = z.object({

@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     feature: 'faq-rag',
     title: 'FAQ for Internship for Students',
     section: 'Student FAQ',
-    sourceUrl: 'local://FAQ for Internship for Students.pdf',
+    sourceUrl: 'https://www.rmit.edu.au/students/careers-opportunities/internships-work-experience-wil',
     content,
   })
 

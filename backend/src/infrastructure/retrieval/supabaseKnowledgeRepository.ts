@@ -81,6 +81,21 @@ export class SupabaseKnowledgeRepository implements KnowledgeRepository {
 
     return ((data ?? []) as KnowledgeDocumentRow[]).map((row: KnowledgeDocumentRow) => mapDocumentRow(row))
   }
+
+  async deleteDocumentsByFeature(feature: string): Promise<number> {
+    const supabase = getSupabaseClient()
+    const { data, error } = await supabase
+      .from(KNOWLEDGE_DOCUMENTS_TABLE)
+      .delete()
+      .eq('feature', feature)
+      .select('id')
+
+    if (error) {
+      throw new ValidationError(`Failed to delete knowledge documents: ${error.message}`)
+    }
+
+    return (data ?? []).length
+  }
 }
 
 function mapDocumentRow(row: KnowledgeDocumentRow): KnowledgeDocumentRecord {

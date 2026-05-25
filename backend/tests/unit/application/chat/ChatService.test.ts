@@ -31,6 +31,7 @@ describe('ChatService', () => {
         title: 'Internship FAQ',
         section: 'Eligibility',
         sourceUrl: 'https://example.com/faq',
+        excerpt: 'Students must be enrolled full-time.',
       },
     ])
     expect(vi.mocked(modelProvider.generateText)).toHaveBeenCalledOnce()

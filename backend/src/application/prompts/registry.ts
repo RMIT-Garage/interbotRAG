@@ -20,8 +20,8 @@ const promptRegistry: Record<BenchmarkFeature, PromptConfig> = {
     path: path.join(benchmarkRoot, 'job-checker', 'v1.3.0.txt'),
   },
   'faq-rag': {
-    version: 'v1.0.0',
-    path: path.join(benchmarkRoot, 'faq-rag', 'v1.0.0.txt'),
+    version: 'v1.1.0',
+    path: path.join(benchmarkRoot, 'faq-rag', 'v1.1.0.txt'),
   },
 }
 

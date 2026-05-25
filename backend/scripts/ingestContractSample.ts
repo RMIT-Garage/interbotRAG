@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     feature: 'faq-rag',
     title: 'Employment Contract Sample (Access4)',
     section: 'Contract Terms',
-    sourceUrl: 'local://Contract data.pdf',
+    sourceUrl: 'https://www.rmit.edu.au/students/careers-opportunities/internships-work-experience-wil',
     content,
   })
 

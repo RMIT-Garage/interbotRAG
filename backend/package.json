@@ -21,6 +21,8 @@
     "benchmark:ci": "tsx src/benchmarkRunner.ts --mode=smoke --fixtures=true",
     "ingest:contract-sample": "tsx scripts/ingestContractSample.ts",
     "ingest:faq-students-sample": "tsx scripts/ingestFaqStudentsSample.ts",
+    "ingest:knowledge": "tsx scripts/ingestKnowledgeManifest.ts",
+    "scrape:rmit-pages": "tsx scripts/scrapeRmitPages.ts",
     "keys:issue": "tsx scripts/issueApiKey.ts",
     "keys:revoke": "tsx scripts/revokeApiKey.ts",
     "openapi:emit": "tsx scripts/emitOpenapi.ts"

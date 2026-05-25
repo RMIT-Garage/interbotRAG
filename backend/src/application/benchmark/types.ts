@@ -37,6 +37,7 @@ export type CheckerModelOutput = z.infer<typeof checkerModelOutputSchema>
 export const faqSourceSchema = z.object({
   title: z.string(),
   section: z.string(),
+  url: z.string().url().optional(),
 })
 
 export const faqModelOutputSchema = z.object({

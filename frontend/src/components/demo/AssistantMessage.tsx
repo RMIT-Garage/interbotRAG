@@ -19,7 +19,7 @@ export interface CheckerModelOutput {
 
 export interface FaqModelOutput {
   answer: string
-  sources: Array<{ title: string; section: string }>
+  sources: Array<{ title: string; section: string; url?: string }>
   confidence: number
   answered_from_context: boolean
 }
@@ -32,6 +32,38 @@ export interface RagSource {
   title: string
   section: string
   sourceUrl?: string
+  excerpt?: string
+}
+
+function formatSourceHostname(url: string): string {
+  try {
+    return new URL(url).hostname.replace(/^www\./, '')
+  } catch {
+    return url
+  }
+}
+
+function dedupeRagSources(sources: RagSource[]): RagSource[] {
+  const seen = new Set<string>()
+  return sources.filter((source) => {
+    const key = `${source.title}|${source.section}|${source.sourceUrl ?? ''}`
+    if (seen.has(key)) return false
+    seen.add(key)
+    return true
+  })
+}
+
+function SourceLink({ url }: { url: string }) {
+  return (
+    <a
+      href={url}
+      target="_blank"
+      rel="noreferrer"
+      className="mt-1 inline-flex items-center gap-1 text-brand-600 underline dark:text-brand-400"
+    >
+      Open source ({formatSourceHostname(url)})
+    </a>
+  )
 }
 
 export interface WebSource {
@@ -259,6 +291,7 @@ function FaqCard({
               >
                 <p className="font-medium text-zinc-700 dark:text-zinc-200">{src.title}</p>
                 <p className="text-zinc-400">{src.section}</p>
+                {src.url ? <SourceLink url={src.url} /> : null}
               </li>
             ))}
           </ul>
@@ -273,30 +306,26 @@ function FaqCard({
 // ---------------------------------------------------------------------------
 
 function RagSourceList({ sources, messageId }: { sources: RagSource[]; messageId: string }) {
+  const uniqueSources = dedupeRagSources(sources)
+
   return (
     <Collapsible
-      label={`Retrieved Context (${sources.length})`}
+      label={`Sources (${uniqueSources.length})`}
       icon={<BookOpen className="size-3.5" />}
-      defaultOpen={false}
+      defaultOpen={true}
     >
       <ul className="space-y-1.5">
-        {sources.map((source, index) => (
+        {uniqueSources.map((source, index) => (
           <li
             key={`${messageId}-rag-${index}`}
             className="rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs dark:border-zinc-700 dark:bg-zinc-900"
           >
             <p className="font-medium text-zinc-700 dark:text-zinc-200">{source.title}</p>
             <p className="text-zinc-400">{source.section}</p>
-            {source.sourceUrl ? (
-              <a
-                href={source.sourceUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="mt-1 inline-block text-brand-600 underline dark:text-brand-400"
-              >
-                {source.sourceUrl}
-              </a>
+            {source.excerpt ? (
+              <p className="mt-1 line-clamp-3 text-zinc-500 dark:text-zinc-400">{source.excerpt}</p>
             ) : null}
+            {source.sourceUrl ? <SourceLink url={source.sourceUrl} /> : null}
           </li>
         ))}
       </ul>
@@ -346,7 +375,8 @@ export function AssistantMessage({
   webSources,
   messageId,
 }: AssistantMessageProps) {
-  const hasSources = sources && sources.length > 0
+  const dedupedSources = sources ? dedupeRagSources(sources) : undefined
+  const hasSources = dedupedSources && dedupedSources.length > 0
   const hasWebSources = webSources && webSources.length > 0
 
   // If we have structured data, render the rich UI
@@ -359,8 +389,8 @@ export function AssistantMessage({
         {structuredData.type === 'faq' && (
           <FaqCard data={structuredData.data} messageId={messageId} contentType={contentType} contentBlocks={contentBlocks} />
         )}
-        {hasSources && (
-          <RagSourceList sources={sources} messageId={messageId} />
+        {hasSources && dedupedSources && (
+          <RagSourceList sources={dedupedSources} messageId={messageId} />
         )}
         {hasWebSources && <WebSourceList sources={webSources} messageId={messageId} />}
       </div>
@@ -371,8 +401,8 @@ export function AssistantMessage({
   return (
     <div className="space-y-3">
       <MessageBodyRenderer content={content} contentType={contentType} contentBlocks={contentBlocks} />
-      {hasSources && (
-        <RagSourceList sources={sources} messageId={messageId} />
+      {hasSources && dedupedSources && (
+        <RagSourceList sources={dedupedSources} messageId={messageId} />
       )}
       {hasWebSources && <WebSourceList sources={webSources} messageId={messageId} />}
     </div>

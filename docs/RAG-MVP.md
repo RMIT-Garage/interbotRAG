@@ -15,21 +15,29 @@ The current MVP provides:
 - deterministic text chunking in `backend/src/application/knowledge/chunkText.ts`
 - embedding generation through `backend/src/infrastructure/ai/geminiEmbeddingProvider.ts`
 - Supabase `pgvector` storage and retrieval using `backend/supabase/schema.sql`
-- grounded chat responses with `sources` and optional `webSources` rendered in the assistant UI
-- a dashboard knowledge page at `frontend/src/app/(dashboard)/knowledge/page.tsx`
+- grounded chat responses with `sources` (including `sourceUrl` and `excerpt`) and optional `webSources` rendered in the assistant UI
+- one-time CLI knowledge seeding via `pnpm --filter backend ingest:knowledge` and optional `scrape:rmit-pages`
+- FAQ prompt `v1.1.0` with RMIT SE WIL coordinator contacts in system instructions
+
+## Bundled knowledge (seed via manifest)
+
+| Content | Location |
+|---------|----------|
+| Student internship FAQ (by section) | `backend/data/faq-internship-students-cleaned.txt` |
+| Coordinators (Alessio Bonti, Golnoush Abaei) | `backend/data/coordinators-rmit-se-wil.txt` |
+| Ingest manifest | `backend/data/knowledge-manifest.json` |
+| Scraped RMIT pages (optional) | `backend/data/scraped/*.txt` after `scrape:rmit-pages` |
 
 ## What is not implemented yet
 
 The current MVP does **not** include:
 
 - PDF or arbitrary file parsing for ingestion
-- background sync from external systems
+- background sync or scheduled re-scraping from external sites
 - n8n-based workflows
-- multi-role content management UI
+- active admin knowledge UI (`/knowledge` redirects to assistant)
 - advanced source ranking controls
 - analytics or retrieval quality dashboards
-
-The current ingestion path is **manual text entry** only.
 
 ## Frontend surfaces
 
@@ -42,7 +50,7 @@ The current ingestion path is **manual text entry** only.
   - renders assistant text plus returned knowledge and web citations
 
 ### Knowledge management page
-- Route: `/knowledge`
+- Route: `/knowledge` (currently redirects to `/assistant`; use CLI ingest instead)
 - Page file: `frontend/src/app/(dashboard)/knowledge/page.tsx`
 - Behavior:
   - lists ingested knowledge documents

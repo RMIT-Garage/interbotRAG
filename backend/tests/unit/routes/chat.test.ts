@@ -45,6 +45,7 @@ describe('POST /api/chat/message', () => {
         title: 'Internship FAQ',
         section: 'Eligibility',
         sourceUrl: 'https://example.com/faq',
+        excerpt: 'Students must be enrolled full-time.',
       },
     ])
   })
