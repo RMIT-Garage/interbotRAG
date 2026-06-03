@@ -1,14 +1,16 @@
-# CLAUDE.md — Garage Boilerplate
+# CLAUDE.md — interbotRAG
 
 This file provides full context for Claude Code. Read it before making any changes.
-Client projects that fork this repo should update this file with their own project details.
 
 ---
 
 ## Project Overview
 
-**Type:** Tech consultancy boilerplate — forked for each client engagement.
-**Purpose:** Zero-friction foundation for Next.js + Firebase web applications.
+**Type:** RAG + AI microservice for the Internbot capstone (RMIT).
+**Purpose:** FAQ RAG, job checker, and contract checker APIs; Supabase/pgvector knowledge; optional admin/demo Next.js UI. Internbot proxies student/coordinator chat to this service via `RAG_SERVICE_URL`.
+**Author:** Duc Gia Tin Huynh (s3962053).
+**Sibling repo:** [Internbot](https://github.com/giatinhuynh/Internbot).  
+**Handover:** [docs/HANDOVER.md](docs/HANDOVER.md).
 
 ---
 
@@ -232,15 +234,12 @@ pnpm run typecheck        # TypeScript check across all packages
 
 ---
 
-## Forking for a New Client Project
+## Handover and new deployment
 
-When forking this boilerplate for a new client:
+Deploying on a new Firebase + Supabase account or connecting a new [Internbot](https://github.com/giatinhuynh/Internbot) instance:
 
-1. **Update this file** — replace the overview section with client project details
-2. **Replace `.firebaserc`** — set the client's Firebase project ID
-3. **Replace `infrastructure/terraform.tfvars.example`** — set the client's project ID
-4. **Update `frontend/.env.example`** — fill in `NEXT_PUBLIC_APP_NAME`
-5. **Update the region** in `backend/src/index.ts` and `infrastructure/variables.tf` if not Australia
-6. **Delete** `src/features/example-feature/` — it's a scaffold template only
-7. **Update `docs/ARCHITECTURE.md`** with the client's actual system design
-8. Run `pnpm run validate` — must return zero errors before first commit
+1. Follow [docs/HANDOVER.md](docs/HANDOVER.md) (Day 1 timeline, secrets, ingest, `RAG_SERVICE_URL` on Internbot).
+2. Set `.firebaserc` to your Firebase project id.
+3. Update `frontend/.env.example` / GitHub secrets for `NEXT_PUBLIC_APP_NAME` if rebranding the demo UI.
+4. Confirm `backend/src/index.ts` region (`australia-southeast1`) matches your deployment.
+5. Run `pnpm run validate` before the first deploy commit.

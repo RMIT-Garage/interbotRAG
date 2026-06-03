@@ -46,6 +46,18 @@ Add these in **GitHub → Settings → Secrets and variables → Actions**:
 | `FIREBASE_PROJECT_ID` | Firebase project ID (used as `--project` flag) |
 | `FIREBASE_SERVICE_ACCOUNT_KEY_BASE64` | Base64-encoded service account JSON — used for both deploy auth and the backend Cloud Function |
 
+### RAG runtime secrets (required for live FAQ / ingest in production)
+
+Written to `backend/.env.<FIREBASE_PROJECT_ID>` during deploy by `.github/workflows/deploy-firebase.yml`:
+
+| Secret | Description |
+|--------|-------------|
+| `GEMINI_API_KEY` | Gemini chat + embeddings |
+| `SUPABASE_URL` | Supabase project URL |
+| `SUPABASE_SERVICE_ROLE_KEY` | Supabase service role (server only) |
+
+See [HANDOVER.md](./HANDOVER.md) for the full onboarding checklist.
+
 ### Getting the service account key
 
 1. Firebase Console → Project Settings → Service Accounts

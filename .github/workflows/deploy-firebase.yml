@@ -23,6 +23,9 @@ jobs:
       NEXT_PUBLIC_FIREBASE_APP_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_APP_ID }}
       NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID: ${{ secrets.NEXT_PUBLIC_FIREBASE_MEASUREMENT_ID }}
       NEXT_PUBLIC_APP_NAME: ${{ secrets.NEXT_PUBLIC_APP_NAME }}
+      GEMINI_API_KEY: ${{ secrets.GEMINI_API_KEY }}
+      SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+      SUPABASE_SERVICE_ROLE_KEY: ${{ secrets.SUPABASE_SERVICE_ROLE_KEY }}
 
     steps:
       - name: Checkout
@@ -43,6 +46,18 @@ jobs:
 
       - name: Build backend functions
         run: pnpm --filter backend build
+
+      - name: Write backend runtime env for Cloud Functions
+        if: env.FIREBASE_PROJECT_ID != ''
+        shell: bash
+        run: |
+          ENV_FILE="backend/.env.${FIREBASE_PROJECT_ID}"
+          {
+            echo "FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}"
+            [ -n "${GEMINI_API_KEY}" ] && echo "GEMINI_API_KEY=${GEMINI_API_KEY}"
+            [ -n "${SUPABASE_URL}" ] && echo "SUPABASE_URL=${SUPABASE_URL}"
+            [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ] && echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}"
+          } > "$ENV_FILE"
 
       - name: Prepare Firebase credentials
         shell: bash

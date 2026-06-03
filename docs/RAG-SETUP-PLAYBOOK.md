@@ -2,6 +2,8 @@
 
 This playbook walks through the minimum setup needed to make the current Firebase + Supabase RAG MVP work end-to-end.
 
+**Internbot:** After deploy, set `RAG_SERVICE_URL` in the [Internbot](https://github.com/giatinhuynh/Internbot) backend to this service’s function base URL (see [README](../README.md#integration-with-internbot)).
+
 For the feature overview, see [RAG-MVP.md](RAG-MVP.md). For architecture details, see [ARCHITECTURE.md](ARCHITECTURE.md). For canonical variable definitions, see [ENV-VARS.md](ENV-VARS.md).
 
 ## Prerequisites

@@ -1,6 +1,8 @@
 # Public HTTP API (v1)
 
-This service exposes a **versioned public API** for the **internbot** platform (and similar server-to-server clients). The browser-facing demo in this repo continues to use legacy `/api/chat/*` routes; **new integrations should use `/api/v1/*`**.
+This service exposes a **versioned public API** for the **[Internbot](https://github.com/giatinhuynh/Internbot)** platform (and similar server-to-server clients). The browser-facing demo in this repo continues to use legacy `/api/chat/*` routes; **new integrations should use `/api/v1/*`**.
+
+Maintainer: Duc Gia Tin Huynh (s3962053).
 
 ## Base URL
 

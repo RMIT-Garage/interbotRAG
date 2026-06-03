@@ -246,7 +246,7 @@ The `tests/setup.ts` also mocks `infrastructure/config/firebaseAdmin` so the SDK
    router.use('/{name}', {name}Router)
    ```
 3. Write unit tests in `tests/unit/routes/{name}.test.ts`
-4. Use the `/add-route` skill to scaffold the boilerplate
+4. Use the `/add-route` skill to scaffold the route
 
 ---
 

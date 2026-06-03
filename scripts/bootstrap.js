@@ -69,7 +69,7 @@ function checkFirebaserc() {
   }
 }
 
-console.log('\n=== Garage boilerplate: bootstrap (first-time local setup) ===\n')
+console.log('\n=== interbotRAG: bootstrap (first-time local setup) ===\n')
 
 if (!dockerOk()) {
   err('Docker is not running. Start Docker Desktop (or the Docker daemon), then run: pnpm run bootstrap')
