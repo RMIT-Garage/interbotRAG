@@ -53,8 +53,13 @@ jobs:
         run: |
           ENV_FILE="backend/.env.${FIREBASE_PROJECT_ID}"
           {
-            echo "FIREBASE_PROJECT_ID=${FIREBASE_PROJECT_ID}"
+            # Do NOT write FIREBASE_PROJECT_ID — Cloud Functions rejects FIREBASE_-prefixed
+            # keys in .env. The runtime reads the project from GCLOUD_PROJECT automatically.
             [ -n "${GEMINI_API_KEY}" ] && echo "GEMINI_API_KEY=${GEMINI_API_KEY}"
+            # Generation + embedding model config (must match the ingested vector dimension).
+            echo "GEMINI_MODEL=gemini-2.0-flash-lite"
+            echo "GEMINI_EMBEDDING_MODEL=gemini-embedding-001"
+            echo "GEMINI_EMBEDDING_DIMENSION=768"
             [ -n "${SUPABASE_URL}" ] && echo "SUPABASE_URL=${SUPABASE_URL}"
             [ -n "${SUPABASE_SERVICE_ROLE_KEY}" ] && echo "SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}"
           } > "$ENV_FILE"
@@ -82,7 +87,9 @@ jobs:
           PY
           echo "GOOGLE_APPLICATION_CREDENTIALS=${RUNNER_TEMP}/gcp-sa.json" >> "$GITHUB_ENV"
 
-      - name: Deploy hosting, functions, and rules
+      # NOTE: storage requires Firebase Storage to be initialized on the project once
+      # (Console → Storage → Get Started). hosting deploys the Next.js frontend.
+      - name: Deploy hosting, functions, rules, and storage
         run: |
           npx firebase-tools experiments:enable webframeworks
           npx firebase-tools deploy --force --project "$FIREBASE_PROJECT_ID" --only "hosting,functions,firestore:rules,storage"
