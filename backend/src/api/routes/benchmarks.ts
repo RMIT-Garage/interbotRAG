@@ -14,7 +14,7 @@ import { ApiError } from '../errors'
 
 const router: ExpressRouter = Router()
 
-const DEFAULT_MODEL = 'gemini-2.0-flash-lite'
+const DEFAULT_MODEL = 'gemini-2.5-flash-lite'
 
 const benchmarkRouteLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
