@@ -57,7 +57,7 @@ jobs:
             # keys in .env. The runtime reads the project from GCLOUD_PROJECT automatically.
             [ -n "${GEMINI_API_KEY}" ] && echo "GEMINI_API_KEY=${GEMINI_API_KEY}"
             # Generation + embedding model config (must match the ingested vector dimension).
-            echo "GEMINI_MODEL=gemini-2.0-flash-lite"
+            echo "GEMINI_MODEL=gemini-2.5-flash-lite"
             echo "GEMINI_EMBEDDING_MODEL=gemini-embedding-001"
             echo "GEMINI_EMBEDDING_DIMENSION=768"
             [ -n "${SUPABASE_URL}" ] && echo "SUPABASE_URL=${SUPABASE_URL}"

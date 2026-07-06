@@ -98,3 +98,5 @@ resource "google_firebase_app_hosting_backend" "frontend" {
 
   depends_on = [google_firebase_project.default]
 }
+
+  
